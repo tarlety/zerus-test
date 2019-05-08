@@ -44,7 +44,6 @@ SECRET=${SECRET:-"${PWD}/.secret/${SCRIPTNAME}"}
 CONFIG=${CONFIG:-"${PWD}/.config/${SCRIPTNAME}"}
 
 RAMSIZE=1024
-DISKSIZE=10240
 DISKPATHBASE="${HOME}/VirtualBox VMs"
 
 DEFAULT_STORE=${STORE:-"${PWD}/.store/${SCRIPTNAME}"}
@@ -212,19 +211,32 @@ case $1 in
 		shift
 		case $1 in
 			"create")
+				# network: https://www.brianlinkletter.com/how-to-use-virtualbox-to-emulate-a-network/
+				VBoxManage dhcpserver add --netname intnet --ip 10.13.13.100 --netmask 255.255.255.0 --lowerip 10.13.13.101 --upperip 10.13.13.254 --enable
 				for VMNAME in $VMSPEC
 				do
-					DISK1="${DISKPATHBASE}/${VMNAME}/disk01.vdi"
-					DISK2="${DISKPATHBASE}/${VMNAME}/disk02.vdi"
+					DISK_OS="${DISKPATHBASE}/${VMNAME}/disk-os.vdi"
+					DISK_DATA="${DISKPATHBASE}/${VMNAME}/disk-data.vdi"
 					VBoxManage createvm --name ${VMNAME} --register
-					VBoxManage modifyvm ${VMNAME} --memory ${RAMSIZE} --acpi on --boot2 dvd --nic1 nat --ostype Ubuntu
-					VBoxManage createvdi --filename "${DISK1}" --size ${DISKSIZE}
-					VBoxManage createvdi --filename "${DISK2}" --size ${DISKSIZE}
+					VBoxManage modifyvm ${VMNAME} \
+						--memory ${RAMSIZE} \
+						--acpi on \
+						--boot2 dvd \
+						--nic1 nat --nic2 intnet \
+						--ostype Ubuntu
+					VBoxManage createvdi --filename "${DISK_OS}" --size 10240
+					VBoxManage createvdi --filename "${DISK_DATA}" --size 20480
 					VBoxManage storagectl ${VMNAME} --name "IDE Controller" --add ide
-					VBoxManage storageattach ${VMNAME} --storagectl "IDE Controller" --port 0 --device 0 --type hdd --medium "${DISK1}"
-					VBoxManage storageattach ${VMNAME} --storagectl "IDE Controller" --port 1 --device 0 --type hdd --medium "${DISK2}"
-					VBoxManage storageattach ${VMNAME} --storagectl "IDE Controller" --port 0 --device 1 --type dvddrive --medium ${ISO}
-					VBoxHeadless --startvm ${VMNAME}&
+					VBoxManage storageattach ${VMNAME} \
+						--storagectl "IDE Controller" --port 0 --device 0 \
+						--type hdd --medium "${DISK_OS}"
+					VBoxManage storageattach ${VMNAME} \
+						--storagectl "IDE Controller" --port 1 --device 0 \
+						--type hdd --medium "${DISK_DATA}"
+					VBoxManage storageattach ${VMNAME} \
+						--storagectl "IDE Controller" --port 0 --device 1 \
+						--type dvddrive --medium ${ISO}
+					VBoxManage startvm ${VMNAME}&
 				done
 				;;
 			"delete")
@@ -233,6 +245,7 @@ case $1 in
 					VBoxManage controlvm ${VMNAME} poweroff
 					VBoxManage unregistervm --delete ${VMNAME}
 				done
+				VBoxManage dhcpserver remove --netname intnet
 				;;
 		esac
 		;;
