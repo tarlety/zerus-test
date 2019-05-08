@@ -51,6 +51,7 @@ DEFAULT_BASE_CONFIG=nop
 DEFAULT_BASE_SECRET=nop
 DEFAULT_BASE_DATA=nop
 DEFAULT_VMSPEC="u1 u2 u3"
+DEFAULT_SSHPORT=1024
 DEFAULT_ISO="ubuntu-18.04.1-live-server-amd64.iso"
 DEFAULT_GPGKEYNAME=${USERNAME}
 
@@ -59,6 +60,7 @@ BASE_CONFIG=`cat ${CONFIG}/base_config 2>/dev/null`
 BASE_SECRET=`cat ${CONFIG}/base_secret 2>/dev/null`
 BASE_DATA=`cat ${CONFIG}/base_data 2>/dev/null`
 VMSPEC=`cat ${CONFIG}/vmspec 2>/dev/null`
+SSHPORT=`cat ${CONFIG}/sshport 2>/dev/null`
 ISO=`cat ${CONFIG}/iso 2>/dev/null`
 GPGKEYNAME=`cat ${CONFIG}/gpgkeyname 2>/dev/null`
 
@@ -79,6 +81,7 @@ case $1 in
 		echo - SECRET: ${SECRET}
 		echo - CONFIG: ${CONFIG}
 		echo - VMSPEC: ${VMSPEC}
+		echo - SSHPORT: ${SSHPORT}
 		echo - ISO: ${ISO}
 		echo - GPGKEYNAME: ${GPGKEYNAME} $(gpg -k ${GPGKEYNAME} 2>/dev/null | sed -n '2p' | xargs)
 		echo "## REQUIREMENT:"
@@ -102,6 +105,11 @@ case $1 in
 				VMSPEC=${1:-${DEFAULT_VMSPEC}}
 				echo ${VMSPEC} > ${CONFIG}/vmspec
 				;;
+			"sshport")
+				shift
+				SSHPORT=${1:-${DEFAULT_SSHPORT}}
+				echo ${SSHPORT} > ${CONFIG}/sshport
+				;;
 			"iso")
 				shift
 				ISO=${1:-${DEFAULT_ISO}}
@@ -120,6 +128,8 @@ case $1 in
 				echo "			Ex: $(basename $0) config store ${DEFAULT_STORE}"
 				echo "	vmspec		How much vm is required."
 				echo "			Ex: $(basename $0) config vmspec ${DEFAULT_VMSPEC}"
+				echo "	sshport		Which localhost port forwards to vm ssh port."
+				echo "			Ex: $(basename $0) config sshport ${DEFAULT_SSHPORT}"
 				echo "	iso		the iso used for vm installation."
 				echo "			Ex: $(basename $0) config iso ${DEFAULT_ISO}"
 				echo "	gpg		configure which gpg key to use."
@@ -229,7 +239,7 @@ case $1 in
 		shift
 		case $1 in
 			"on")
-				VBoxManage controlvm ${VMNAME} natpf1 "ssh,tcp,127.0.0.1,5022,,22"
+				VBoxManage controlvm ${VMNAME} natpf1 "ssh,tcp,127.0.0.1,${SSHPORT},,22"
 				;;
 			"off")
 				VBoxManage controlvm ${VMNAME} natpf1 delete "ssh"
@@ -281,7 +291,7 @@ case $1 in
 		echo $(basename $0) config ...
 		echo $(basename $0) secret-create
 		echo $(basename $0) "state [list/save/load] [config/secret/data] [state_name, ex: date-stage-env]"
-		echo $(basename $0) "ssh-forward vmname [on/off]"
+		echo $(basename $0) "ssh-forward [vmname] [on/off]"
 		echo $(basename $0) "[network/vm] [create/delete]"
 		;;
 esac
