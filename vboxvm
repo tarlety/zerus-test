@@ -37,7 +37,7 @@
 #------------------------------------------------------------------------------
 # Environments:
 
-VERSION=0.4.0
+VERSION=0.4.1
 SCRIPTNAME=vboxvm
 APPNAME=vboxvm
 SECRET=${SECRET:-"${PWD}/.secret/${SCRIPTNAME}"}
@@ -51,7 +51,7 @@ DEFAULT_STORE=${STORE:-"${PWD}/.store/${SCRIPTNAME}"}
 DEFAULT_BASE_CONFIG=nop
 DEFAULT_BASE_SECRET=nop
 DEFAULT_BASE_DATA=nop
-DEFAULT_VMNAMES="u1 u2"
+DEFAULT_VMSPEC="u1 u2 u3"
 DEFAULT_ISO="ubuntu-18.04.1-live-server-amd64.iso"
 DEFAULT_GPGKEYNAME=${USERNAME}
 
@@ -59,7 +59,7 @@ STORE=`cat ${CONFIG}/store 2>/dev/null`
 BASE_CONFIG=`cat ${CONFIG}/base_config 2>/dev/null`
 BASE_SECRET=`cat ${CONFIG}/base_secret 2>/dev/null`
 BASE_DATA=`cat ${CONFIG}/base_data 2>/dev/null`
-VMNAMES=`cat ${CONFIG}/vmnames 2>/dev/null`
+VMSPEC=`cat ${CONFIG}/vmspec 2>/dev/null`
 ISO=`cat ${CONFIG}/iso 2>/dev/null`
 GPGKEYNAME=`cat ${CONFIG}/gpgkeyname 2>/dev/null`
 
@@ -79,7 +79,7 @@ case $1 in
 		echo - STORE: ${STORE}
 		echo - SECRET: ${SECRET}
 		echo - CONFIG: ${CONFIG}
-		echo - VMNAMES: ${VMNAMES}
+		echo - VMSPEC: ${VMSPEC}
 		echo - ISO: ${ISO}
 		echo - GPGKEYNAME: ${GPGKEYNAME} $(gpg -k ${GPGKEYNAME} 2>/dev/null | sed -n '2p' | xargs)
 		echo "## REQUIREMENT:"
@@ -98,10 +98,10 @@ case $1 in
 				STORE=${1:-${DEFAULT_STORE}}
 				echo ${STORE} > ${CONFIG}/store
 				;;
-			"vmnames")
+			"vmspec")
 				shift
-				VMNAMES=${1:-${DEFAULT_VMNAMES}}
-				echo ${VMNAMES} > ${CONFIG}/vmnames
+				VMSPEC=${1:-${DEFAULT_VMSPEC}}
+				echo ${VMSPEC} > ${CONFIG}/vmspec
 				;;
 			"iso")
 				shift
@@ -119,8 +119,8 @@ case $1 in
 				echo "config names:"
 				echo "	store		The local repository for state."
 				echo "			Ex: $(basename $0) config store ${DEFAULT_STORE}"
-				echo "	vmnames		The vm to be created."
-				echo "			Ex: $(basename $0) config vmnames ${DEFAULT_VMNAMES}"
+				echo "	vmspec		How much vm is required."
+				echo "			Ex: $(basename $0) config vmspec ${DEFAULT_VMSPEC}"
 				echo "	iso		the iso used for vm installation."
 				echo "			Ex: $(basename $0) config iso ${DEFAULT_ISO}"
 				echo "	gpg		configure which gpg key to use."
@@ -212,7 +212,7 @@ case $1 in
 		shift
 		case $1 in
 			"create")
-				for VMNAME in $VMNAMES
+				for VMNAME in $VMSPEC
 				do
 					DISK1="${DISKPATHBASE}/${VMNAME}/disk01.vdi"
 					DISK2="${DISKPATHBASE}/${VMNAME}/disk02.vdi"
@@ -228,7 +228,7 @@ case $1 in
 				done
 				;;
 			"delete")
-				for VMNAME in $VMNAMES
+				for VMNAME in $VMSPEC
 				do
 					VBoxManage controlvm ${VMNAME} poweroff
 					VBoxManage unregistervm --delete ${VMNAME}
