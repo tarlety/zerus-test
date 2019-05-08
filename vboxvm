@@ -207,13 +207,40 @@ case $1 in
 				;;
 		esac
 		;;
-	"vm")
+	"network")
 		shift
 		case $1 in
 			"create")
 				# network: https://www.brianlinkletter.com/how-to-use-virtualbox-to-emulate-a-network/
-				VBoxManage dhcpserver add --netname intnet --ip 10.13.13.100 --netmask 255.255.255.0 --lowerip 10.13.13.101 --upperip 10.13.13.254 --enable
-				for VMNAME in $VMSPEC
+				VBoxManage dhcpserver add --netname intnet \
+					--ip 10.13.13.100 \
+					--netmask 255.255.255.0 \
+					--lowerip 10.13.13.101 --upperip 10.13.13.254 \
+					--enable
+				;;
+			"delete")
+				VBoxManage dhcpserver remove --netname intnet
+				;;
+		esac
+		;;
+	"ssh-forward")
+		shift
+		VMNAME=$1
+		shift
+		case $1 in
+			"on")
+				VBoxManage controlvm ${VMNAME} natpf1 "ssh,tcp,127.0.0.1,5022,,22"
+				;;
+			"off")
+				VBoxManage controlvm ${VMNAME} natpf1 delete "ssh"
+				;;
+		esac
+		;;
+	"vm")
+		shift
+		case $1 in
+			"create")
+				for VMNAME in ${VMSPEC}
 				do
 					DISK_OS="${DISKPATHBASE}/${VMNAME}/disk-os.vdi"
 					DISK_DATA="${DISKPATHBASE}/${VMNAME}/disk-data.vdi"
@@ -240,12 +267,11 @@ case $1 in
 				done
 				;;
 			"delete")
-				for VMNAME in $VMSPEC
+				for VMNAME in ${VMSPEC}
 				do
 					VBoxManage controlvm ${VMNAME} poweroff
 					VBoxManage unregistervm --delete ${VMNAME}
 				done
-				VBoxManage dhcpserver remove --netname intnet
 				;;
 		esac
 		;;
@@ -255,7 +281,8 @@ case $1 in
 		echo $(basename $0) config ...
 		echo $(basename $0) secret-create
 		echo $(basename $0) "state [list/save/load] [config/secret/data] [state_name, ex: date-stage-env]"
-		echo $(basename $0) "vm [create/delete]"
+		echo $(basename $0) "ssh-forward vmname [on/off]"
+		echo $(basename $0) "[network/vm] [create/delete]"
 		;;
 esac
 
