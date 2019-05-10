@@ -51,7 +51,8 @@ DEFAULT_BASE_CONFIG=nop
 DEFAULT_BASE_SECRET=nop
 DEFAULT_BASE_DATA=nop
 DEFAULT_VMSPEC="u1 u2 u3"
-DEFAULT_SSHPORT=1024
+DEFAULT_LSSHPORTS='( ["u1"]="2201" ["u2"]="2202" ["u3"]="2203" )'
+DEFAULT_RSSHPORT=22
 DEFAULT_ISO="ubuntu-18.04.1-live-server-amd64.iso"
 DEFAULT_GPGKEYNAME=${USERNAME}
 
@@ -60,7 +61,7 @@ BASE_CONFIG=`cat ${CONFIG}/base_config 2>/dev/null`
 BASE_SECRET=`cat ${CONFIG}/base_secret 2>/dev/null`
 BASE_DATA=`cat ${CONFIG}/base_data 2>/dev/null`
 VMSPEC=`cat ${CONFIG}/vmspec 2>/dev/null`
-LSSHPORT=`cat ${CONFIG}/lsshport 2>/dev/null`
+declare -A LSSHPORTS=`cat ${CONFIG}/lsshports 2>/dev/null`
 RSSHPORT=`cat ${CONFIG}/rsshport 2>/dev/null`
 ISO=`cat ${CONFIG}/iso 2>/dev/null`
 GPGKEYNAME=`cat ${CONFIG}/gpgkeyname 2>/dev/null`
@@ -82,7 +83,7 @@ case $1 in
 		echo - SECRET: ${SECRET}
 		echo - CONFIG: ${CONFIG}
 		echo - VMSPEC: ${VMSPEC}
-		echo - LSSHPORT: ${LSSHPORT}
+		echo - LSSHPORTS: "{${!LSSHPORTS[@]}} -> {${LSSHPORTS[@]}}"
 		echo - RSSHPORT: ${RSSHPORT}
 		echo - ISO: ${ISO}
 		echo - GPGKEYNAME: ${GPGKEYNAME} $(gpg -k ${GPGKEYNAME} 2>/dev/null | sed -n '2p' | xargs)
@@ -107,10 +108,10 @@ case $1 in
 				VMSPEC=${1:-${DEFAULT_VMSPEC}}
 				echo ${VMSPEC} > ${CONFIG}/vmspec
 				;;
-			"lsshport")
+			"lsshports")
 				shift
-				LSSHPORT=${1:-${DEFAULT_LSSHPORT}}
-				echo ${LSSHPORT} > ${CONFIG}/lsshport
+				LSSHPORTS=${1:-${DEFAULT_LSSHPORTS}}
+				echo ${LSSHPORTS} > ${CONFIG}/lsshports
 				;;
 			"rsshport")
 				shift
@@ -135,8 +136,8 @@ case $1 in
 				echo "			Ex: $(basename $0) config store ${DEFAULT_STORE}"
 				echo "	vmspec		How much vm is required."
 				echo "			Ex: $(basename $0) config vmspec ${DEFAULT_VMSPEC}"
-				echo "	lsshport	Which localhost port forwards to vm ssh port."
-				echo "			Ex: $(basename $0) config lsshport ${DEFAULT_LSSHPORT}"
+				echo "	lsshports	Which localhost ports forward to vm ssh port."
+				echo "			Ex: $(basename $0) config lsshport ${DEFAULT_LSSHPORTS}"
 				echo "	rsshport	Which vm port as ssh port."
 				echo "			Ex: $(basename $0) config rsshport ${DEFAULT_RSSHPORT}"
 				echo "	iso		the iso used for vm installation."
@@ -245,13 +246,20 @@ case $1 in
 	"ssh-forward")
 		shift
 		VMNAME=$1
+		VMIP=$(host ${VMNAME} | grep address | cut -d' ' -f4)
+		LSSHPORT=${LSSHPORTS[${VMNAME}]}
+		echo "forwarding localhost:${LSSHPORT} to ${VMNAME}:${RSSHPORT}"
 		shift
 		case $1 in
 			"on")
-				VBoxManage controlvm ${VMNAME} natpf1 "ssh,tcp,127.0.0.1,${LSSHPORT},,${RSSHPORT}"
+				VBoxManage controlvm ${VMNAME} natpf1 "ssh-${VMNAME},tcp,127.0.0.1,${LSSHPORT},,${RSSHPORT}"
+				sudo iptables -t nat -A PREROUTING -p tcp -d ${VMIP} --dport ${RSSHPORT} -j DNAT --to-destination 127.0.0.1:${LSSHPORT}
+				sudo iptables -t nat -A OUTPUT -p tcp -d ${VMIP} --dport ${RSSHPORT} -j DNAT --to-destination 127.0.0.1:${LSSHPORT}
 				;;
 			"off")
-				VBoxManage controlvm ${VMNAME} natpf1 delete "ssh"
+				VBoxManage controlvm ${VMNAME} natpf1 delete "ssh-${VMNAME}"
+				sudo iptables -t nat -D PREROUTING -p tcp -d ${VMIP} --dport ${RSSHPORT} -j DNAT --to-destination 127.0.0.1:${LSSHPORT}
+				sudo iptables -t nat -D OUTPUT -p tcp -d ${VMIP} --dport ${RSSHPORT} -j DNAT --to-destination 127.0.0.1:${LSSHPORT}
 				;;
 		esac
 		;;
