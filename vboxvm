@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 0.4.0 backlogs:
-#  derived: kube-apps-ctrl, docker-apps
+# 0.5.0 backlogs:
+#  - unattended installation
 
 #------------------------------------------------------------------------------
 # Copyright (c) 2019, tarlety@gmail.com
