@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# 0.5.0 backlogs:
-#  - unattended installation
-
 #------------------------------------------------------------------------------
 # Copyright (c) 2019, tarlety@gmail.com
 #
@@ -37,7 +34,7 @@
 #------------------------------------------------------------------------------
 # Environments:
 
-VERSION=0.4.1
+VERSION=0.4.2
 SCRIPTNAME=vboxvm
 APPNAME=vboxvm
 SECRET=${SECRET:-"${PWD}/.secret/${SCRIPTNAME}"}
@@ -55,6 +52,10 @@ DEFAULT_LSSHPORTS='( ["u1"]="2201" ["u2"]="2202" ["u3"]="2203" )'
 DEFAULT_RSSHPORT=22
 DEFAULT_ISO="ubuntu-18.04.1-live-server-amd64.iso"
 DEFAULT_GPGKEYNAME=${USERNAME}
+
+USERNAME_FILE=${SECRET}/username
+PASSWORD_FILE=${SECRET}/password
+SALT=${SECRET}/salt
 
 STORE=`cat ${CONFIG}/store 2>/dev/null`
 BASE_CONFIG=`cat ${CONFIG}/base_config 2>/dev/null`
@@ -80,7 +81,7 @@ case $1 in
 		echo "## SCRIPT NAME: ${SCRIPTNAME}"
 		echo - VERSION: ${VERSION}
 		echo - STORE: ${STORE}
-		echo - SECRET: ${SECRET}
+		echo - SECRET: $SECRET $(echo $(cat $SALT 2>/dev/null) $(cat ${SECRET}/* | sha256sum 2>/dev/null) | sha1sum | cut -c1-8)
 		echo - CONFIG: ${CONFIG}
 		echo - VMSPEC: ${VMSPEC}
 		echo - LSSHPORTS: "{${!LSSHPORTS[@]}} -> {${LSSHPORTS[@]}}"
@@ -148,7 +149,18 @@ case $1 in
 		esac
 		;;
 	"secret-create")
-		echo "NOT supported."
+		shift
+		mkdir -p ${SECRET}
+		chmod -R go-rwx ${SECRET}
+
+		read -p "username: " USERNAME
+		echo "$USERNAME" | gpg -ear ${GPGKEYNAME} -o ${USERNAME_FILE}
+
+		echo -n "password: "
+		read -s PASSWORD
+		echo "$PASSWORD" | gpg -ear ${GPGKEYNAME} -o ${PASSWORD_FILE}
+
+		gpg --gen-random --armor 2 16 | base64 | cut -c1-16 > ${SALT}
 		;;
 	"state")
 		shift
@@ -269,6 +281,8 @@ case $1 in
 		shift
 		case $1 in
 			"create")
+				USERNAME="$(gpg -d ${USERNAME_FILE})"
+				PASSWORD="$(gpg -d ${PASSWORD_FILE})"
 				for VMNAME in ${VMSPEC}
 				do
 					DISK_OS="${DISKPATHBASE}/${VMNAME}/disk-os.vdi"
@@ -292,7 +306,16 @@ case $1 in
 					VBoxManage storageattach ${VMNAME} \
 						--storagectl "IDE Controller" --port 0 --device 1 \
 						--type dvddrive --medium ${ISO}
-					VBoxManage startvm ${VMNAME}&
+
+					# unattended installation https://www.debian.org/releases/etch/ia64/apbs04.html.zh_CN
+					VBoxManage unattended install \
+						${VMNAME} \
+						--iso=${ISO} \
+						--hostname=${VMNAME}.localhost \
+						--user=${USERNAME} --password=${PASSWORD} \
+						--script-template=${PWD}/UnattendedTemplates/ubuntu-preseed.cfg \
+						--post-install-template=${PWD}/UnattendedTemplates/ubuntu-postinstall.sh \
+						--start-vm=gui
 				done
 				;;
 			"delete")
