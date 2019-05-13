@@ -261,18 +261,27 @@ case $1 in
 		do
 			VMIP=$(host ${VMNAME} | grep address | cut -d' ' -f4)
 			LSSHPORT=${LSSHPORTS[${VMNAME}]}
-			echo "forwarding localhost:${LSSHPORT} to ${VMNAME}:${RSSHPORT}"
 
 			case $1 in
 				"on")
+					echo "Enable forwarding localhost:${LSSHPORT} to ${VMNAME}:${RSSHPORT}"
 					VBoxManage controlvm ${VMNAME} natpf1 "ssh-${VMNAME},tcp,127.0.0.1,${LSSHPORT},,${RSSHPORT}"
-					sudo iptables -t nat -A PREROUTING -p tcp -d ${VMIP} --dport ${RSSHPORT} -j DNAT --to-destination 127.0.0.1:${LSSHPORT}
-					sudo iptables -t nat -A OUTPUT -p tcp -d ${VMIP} --dport ${RSSHPORT} -j DNAT --to-destination 127.0.0.1:${LSSHPORT}
+					sudo iptables -t nat -A PREROUTING -p tcp \
+						-d ${VMIP} --dport ${RSSHPORT} \
+						-j DNAT --to-destination 127.0.0.1:${LSSHPORT}
+					sudo iptables -t nat -A OUTPUT -p tcp \
+						-d ${VMIP} --dport ${RSSHPORT} \
+						-j DNAT --to-destination 127.0.0.1:${LSSHPORT}
 					;;
 				"off")
+					echo "Disable forarding localhost:${LSSHPORT} to ${VMNAME}:${RSSHPORT}"
 					VBoxManage controlvm ${VMNAME} natpf1 delete "ssh-${VMNAME}"
-					sudo iptables -t nat -D PREROUTING -p tcp -d ${VMIP} --dport ${RSSHPORT} -j DNAT --to-destination 127.0.0.1:${LSSHPORT}
-					sudo iptables -t nat -D OUTPUT -p tcp -d ${VMIP} --dport ${RSSHPORT} -j DNAT --to-destination 127.0.0.1:${LSSHPORT}
+					sudo iptables -t nat -D PREROUTING -p tcp \
+						-d ${VMIP} --dport ${RSSHPORT} \
+						-j DNAT --to-destination 127.0.0.1:${LSSHPORT}
+					sudo iptables -t nat -D OUTPUT -p tcp \
+						-d ${VMIP} --dport ${RSSHPORT} \
+						-j DNAT --to-destination 127.0.0.1:${LSSHPORT}
 					;;
 			esac
 		done
