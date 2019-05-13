@@ -331,6 +331,7 @@ case $1 in
 				for VMNAME in ${VMSPEC}
 				do
 					VBoxManage controlvm ${VMNAME} poweroff
+					sleep 2
 					VBoxManage unregistervm --delete ${VMNAME}
 				done
 				;;
