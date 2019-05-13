@@ -88,7 +88,6 @@ case $1 in
 		echo - RSSHPORT: ${RSSHPORT}
 		echo - ISO: ${ISO}
 		echo - GPGKEYNAME: ${GPGKEYNAME} $(gpg -k ${GPGKEYNAME} 2>/dev/null | sed -n '2p' | xargs)
-		echo - SALT: $(cat ${SALT} ${SALT} 2>/dev/null | sha1sum | cut -c1-8)
 		echo "## REQUIREMENT:"
 		echo - VBoxManage: $(which VBoxManage)
 		echo - gpg: $(which gpg)
