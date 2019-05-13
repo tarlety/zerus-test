@@ -155,11 +155,11 @@ case $1 in
 		chmod -R go-rwx ${SECRET}
 
 		read -p "username: " USERNAME
-		echo "$USERNAME" | gpg -ear ${GPGKEYNAME} -o ${USERNAME_FILE}
+		echo "${USERNAME}" | gpg -ear ${GPGKEYNAME} -o ${USERNAME_FILE}
 
 		echo -n "password: "
 		read -s PASSWORD
-		echo "$PASSWORD" | gpg -ear ${GPGKEYNAME} -o ${PASSWORD_FILE}
+		echo "${PASSWORD}" | gpg -ear ${GPGKEYNAME} -o ${PASSWORD_FILE}
 
 		gpg --gen-random --armor 2 16 | base64 | cut -c1-16 > ${SALT}
 		;;
