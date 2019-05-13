@@ -2,10 +2,11 @@
 
 # assumes:
 # - $1 is the config state of zerus-test and node-adm
+# - $2 is the SSHPORT to connect
 # - "../node-adm" exists
 
 BASECONFIG=$1
-SSHPORT=2251
+SSHPORT=$2
 APPLYLOG=${PWD}/${BASECONFIG}-apply.log
 CHECKFAILLOG=${PWD}/${BASECONFIG}-checkFAIL.log
 
