@@ -6,7 +6,7 @@
 
 BASECONFIG=$1
 APPLYLOG=${PWD}/${BASECONFIG}-apply.log
-CHECKFAILLOG=${PWD}/${BASECONFIG}-check.log
+CHECKLOG=${PWD}/${BASECONFIG}-check.log
 
 cd ../zerus-test/
 ./vboxvm ssh-forward off
