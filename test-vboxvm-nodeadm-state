@@ -2,13 +2,11 @@
 
 # assumes:
 # - $1 is the config state of zerus-test and node-adm
-# - $2 is the SSHPORT to connect
 # - "../node-adm" exists
 
 BASECONFIG=$1
-SSHPORT=$2
 APPLYLOG=${PWD}/${BASECONFIG}-apply.log
-CHECKFAILLOG=${PWD}/${BASECONFIG}-checkFAIL.log
+CHECKFAILLOG=${PWD}/${BASECONFIG}-check.log
 
 cd ../zerus-test/
 ./vboxvm ssh-forward off
@@ -20,11 +18,12 @@ cd -
 
 cd ../node-adm/
 ./zss0 state load config ${BASECONFIG}
+SSHPORT=$(./zss0 env | grep "SECURE_PORT" | cut -d: -f2)
 ./zss0 sshclean
 ./zss0 sshwait
 ./zss0 sshcopy
 ./zss0 operate on
-./zss0 apply | tee > ${APPLYLOG}
+./zss0 apply | tee ${APPLYLOG}
 ./zss0 reboot
 cd -
 
@@ -37,6 +36,6 @@ cd -
 cd ../node-adm/
 ./zss0 sshwait
 ./zss0 config nodectl "ssh -p ${SSHPORT}"
-./zss0 check | tee | grep FAIL > ${CHECKFAILLOG}
+./zss0 check | tee ${CHECKLOG}
 cd -
 
