@@ -335,9 +335,10 @@ case $1 in
 						--iso=${ISO} \
 						--hostname=${VMNAME}.localhost \
 						--user=${USERNAME} --password=${PASSWORD} \
+						--locale=en_US --country=TW --time-zone=UTC \
 						--script-template=${PWD}/UnattendedTemplates/ubuntu-preseed.cfg \
 						--post-install-template=${PWD}/UnattendedTemplates/ubuntu-postinstall.sh \
-						--start-vm=gui
+						--start-vm=headless
 				done
 				;;
 			"delete")
