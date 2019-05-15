@@ -34,7 +34,7 @@
 #------------------------------------------------------------------------------
 # Environments:
 
-VERSION=0.4.2
+VERSION=0.4.3
 SCRIPTNAME=vboxvm
 APPNAME=vboxvm
 SECRET=${SECRET:-"${PWD}/.secret/${SCRIPTNAME}"}
@@ -48,6 +48,7 @@ DEFAULT_BASE_CONFIG=nop
 DEFAULT_BASE_SECRET=nop
 DEFAULT_BASE_DATA=nop
 DEFAULT_VMSPEC="u1 u2 u3"
+DEFAULT_DISKMAP_INGB='( ["u1"]="10 1" ["u2"]="10 1" ["u3"]="10 1" )'
 DEFAULT_LSSHPORTS='( ["u1"]="2201" ["u2"]="2202" ["u3"]="2203" )'
 DEFAULT_RSSHPORT=22
 DEFAULT_ISO="ubuntu-18.04.1-server-amd64.iso"
@@ -62,6 +63,7 @@ BASE_CONFIG=`cat ${CONFIG}/base_config 2>/dev/null`
 BASE_SECRET=`cat ${CONFIG}/base_secret 2>/dev/null`
 BASE_DATA=`cat ${CONFIG}/base_data 2>/dev/null`
 VMSPEC=`cat ${CONFIG}/vmspec 2>/dev/null`
+declare -A DISKMAP_INGB=`cat ${CONFIG}/diskmap_ingb 2>/dev/null`
 declare -A LSSHPORTS=`cat ${CONFIG}/lsshports 2>/dev/null`
 RSSHPORT=`cat ${CONFIG}/rsshport 2>/dev/null`
 ISO=`cat ${CONFIG}/iso 2>/dev/null`
@@ -84,6 +86,7 @@ case $1 in
 		echo - SECRET: $SECRET $(echo $(cat $SALT 2>/dev/null) $(cat ${SECRET}/* | sha256sum 2>/dev/null) | sha1sum | cut -c1-8)
 		echo - CONFIG: ${CONFIG}
 		echo - VMSPEC: ${VMSPEC}
+		echo - DISKMAP_INGB: "{${!DISKMAP_INGB[@]}} -> {${DISKMAP_INGB[@]}}"
 		echo - LSSHPORTS: "{${!LSSHPORTS[@]}} -> {${LSSHPORTS[@]}}"
 		echo - RSSHPORT: ${RSSHPORT}
 		echo - ISO: ${ISO}
@@ -108,6 +111,11 @@ case $1 in
 				shift
 				VMSPEC=${1:-${DEFAULT_VMSPEC}}
 				echo ${VMSPEC} > ${CONFIG}/vmspec
+				;;
+			"diskmap_ingb")
+				shift
+				DISKMAP_INGB=${1:-${DEFAULT_DISKMAP_INGB}}
+				echo ${DISKMAP_INGB} > ${CONFIG}/diskmap_ingb
 				;;
 			"lsshports")
 				shift
@@ -137,6 +145,8 @@ case $1 in
 				echo "			Ex: $(basename $0) config store ${DEFAULT_STORE}"
 				echo "	vmspec		How much vm is required."
 				echo "			Ex: $(basename $0) config vmspec ${DEFAULT_VMSPEC}"
+				echo "	diskmap_ingb	the disk size of each vm."
+				echo "			Ex: $(basename $0) config diskmap_ingb ${DEFAULT_DISKMAP_INGB}"
 				echo "	lsshports	Which localhost ports forward to vm ssh port."
 				echo "			Ex: $(basename $0) config lsshport ${DEFAULT_LSSHPORTS}"
 				echo "	rsshport	Which vm port as ssh port."
@@ -294,8 +304,6 @@ case $1 in
 				PASSWORD="$(gpg -d ${PASSWORD_FILE})"
 				for VMNAME in ${VMSPEC}
 				do
-					DISK_OS="${DISKPATHBASE}/${VMNAME}/disk-os.vdi"
-					DISK_DATA="${DISKPATHBASE}/${VMNAME}/disk-data.vdi"
 					VBoxManage createvm --name ${VMNAME} --register
 					VBoxManage modifyvm ${VMNAME} \
 						--memory ${RAMSIZE} \
@@ -303,17 +311,22 @@ case $1 in
 						--boot2 dvd \
 						--nic1 nat --nic2 intnet \
 						--ostype Ubuntu
-					VBoxManage createvdi --filename "${DISK_OS}" --size 10240
-					VBoxManage createvdi --filename "${DISK_DATA}" --size 20480
+					VBoxManage storagectl ${VMNAME} --name "SATA Controller" --add sata
 					VBoxManage storagectl ${VMNAME} --name "IDE Controller" --add ide
+
+					let id=0
+					for DISK_INGB in ${DISKMAP_INGB[${VMNAME}]}
+					do
+						id=$((id+1))
+						DISK="${DISKPATHBASE}/${VMNAME}/disk-${id}.vdi"
+						VBoxManage createvdi --filename "${DISK}" --size $((${DISK_INGB}*1024))
+
+						VBoxManage storageattach ${VMNAME} \
+							--storagectl "SATA Controller" --port ${id} --device 0 \
+							--type hdd --medium "${DISK}"
+					done
 					VBoxManage storageattach ${VMNAME} \
 						--storagectl "IDE Controller" --port 0 --device 0 \
-						--type hdd --medium "${DISK_OS}"
-					VBoxManage storageattach ${VMNAME} \
-						--storagectl "IDE Controller" --port 1 --device 0 \
-						--type hdd --medium "${DISK_DATA}"
-					VBoxManage storageattach ${VMNAME} \
-						--storagectl "IDE Controller" --port 0 --device 1 \
 						--type dvddrive --medium ${ISO}
 
 					# unattended installation https://www.debian.org/releases/etch/ia64/apbs04.html.zh_CN
