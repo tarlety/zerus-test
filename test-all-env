@@ -1,0 +1,22 @@
+#!/bin/bash
+
+cd ../zerus-test/
+./vboxvm env
+./vboxvm state
+cd -
+
+cd ../node-adm/
+./zss0 env
+./zss0 state
+cd -
+
+cd ../node-adm/
+./zss0 env
+./zss0 state
+cd -
+
+cd ../ceph-adm/
+./zss0 env
+./zss0 state
+cd -
+
