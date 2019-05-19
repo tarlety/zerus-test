@@ -11,7 +11,9 @@ CHECKLOG=${PWD}/${BASECONFIG}-check.log
 cd .
 ./vboxvm ssh-forward off
 ./vboxvm vm delete
+./vboxvm network delete
 ./vboxvm state load config ${BASECONFIG}
+./vboxvm network create
 ./vboxvm vm create
 ./vboxvm ssh-forward on
 cd -
