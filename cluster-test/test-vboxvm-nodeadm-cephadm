@@ -8,7 +8,7 @@ BASECONFIG=$1
 APPLYLOG=${PWD}/${BASECONFIG}-apply.log
 CHECKLOG=${PWD}/${BASECONFIG}-check.log
 
-cd ../zerus-test/
+cd .
 ./vboxvm ssh-forward off
 ./vboxvm vm delete
 ./vboxvm state load config ${BASECONFIG}
@@ -16,7 +16,7 @@ cd ../zerus-test/
 ./vboxvm ssh-forward on
 cd -
 
-cd ../node-adm/
+cd ../../node-adm/
 ./zss0 state load config ${BASECONFIG}
 SSHPORT=$(./zss0 env | grep "SECURE_PORT" | cut -d: -f2)
 ./zss0 sshclean
@@ -27,19 +27,19 @@ SSHPORT=$(./zss0 env | grep "SECURE_PORT" | cut -d: -f2)
 ./zss0 reboot
 cd -
 
-cd ../zerus-test/
+cd .
 ./vboxvm ssh-forward off
 ./vboxvm config rsshport ${SSHPORT}
 ./vboxvm ssh-forward on
 cd -
 
-cd ../node-adm/
+cd ../../node-adm/
 ./zss0 sshwait
 ./zss0 config nodectl "ssh -p ${SSHPORT}"
 ./zss0 check | tee ${CHECKLOG}
 cd -
 
-cd ../ceph-adm/
+cd ../../ceph-adm/
 ./zss0 state load config ${BASECONFIG}
 ./zss0 secret-create
 ./zss0 preflight
