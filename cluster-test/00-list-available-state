@@ -1,0 +1,14 @@
+#!/bin/bash
+
+cd .
+./vboxvm state
+cd -
+
+cd ../../node-adm/
+./zss0 state
+cd -
+
+cd ../../ceph-adm/
+./zss0 state
+cd -
+
