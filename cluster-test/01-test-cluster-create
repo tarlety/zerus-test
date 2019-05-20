@@ -49,5 +49,6 @@ cd ../../ceph-adm/
 ./zss0 mon up
 ./zss0 osd up
 ./zss0 mds up
+./zss0 mdsmount
 cd -
 
