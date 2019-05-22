@@ -1,14 +1,30 @@
 #!/bin/bash
 
+echo -------------------------------------------------------
+echo vboxvm
+
 cd .
 ./vboxvm state
 cd -
+
+echo -------------------------------------------------------
+echo node-adm
 
 cd ../../node-adm/
 ./zss0 state
 cd -
 
+echo -------------------------------------------------------
+echo ceph-adm
+
 cd ../../ceph-adm/
+./zss0 state
+cd -
+
+echo -------------------------------------------------------
+echo kube-adm
+
+cd ../../kube-adm/
 ./zss0 state
 cd -
 
