@@ -306,6 +306,7 @@ case $1 in
 				do
 					VBoxManage createvm --name ${VMNAME} --register
 					VBoxManage modifyvm ${VMNAME} \
+						--cpus 2 \
 						--memory ${RAMSIZE} \
 						--acpi on \
 						--boot2 dvd \
