@@ -59,4 +59,5 @@ MASTERIP=$(cat /etc/hosts | grep " ${MASTER}\$" | cut -d' ' -f1)
 ./zss0 preflight
 ./zss0 network up
 ./zss0 secret-create --apiserver-advertise-address ${MASTERIP} --ignore-preflight-errors=all
+./zss0 join
 cd -

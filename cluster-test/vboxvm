@@ -267,7 +267,8 @@ case $1 in
 		;;
 	"ssh-forward")
 		shift
-		for VMNAME in ${VMSPEC}
+		NODES=${2:-${VMSPEC}}
+		for VMNAME in ${NODES}
 		do
 			VMIP=$(host ${VMNAME} | grep address | cut -d' ' -f4)
 			LSSHPORT=${LSSHPORTS[${VMNAME}]}
@@ -295,6 +296,64 @@ case $1 in
 					;;
 			esac
 		done
+		;;
+	"kube-forward")
+		shift
+		NODE=${2:-master}
+		NODEIP=$(host ${NODE} | grep address | cut -d' ' -f4)
+		PORT=6443
+
+		case $1 in
+			"on")
+				echo "Enable forwarding localhost:${PORT} to ${NODE}:${PORT}"
+				VBoxManage controlvm ${NODE} natpf1 "${NODE}-${PORT},tcp,127.0.0.1,${PORT},,${PORT}"
+				sudo iptables -t nat -A PREROUTING -p tcp \
+					-d ${NODEIP} --dport ${PORT} \
+					-j DNAT --to-destination 127.0.0.1:${PORT}
+				sudo iptables -t nat -A OUTPUT -p tcp \
+					-d ${NODEIP} --dport ${PORT} \
+					-j DNAT --to-destination 127.0.0.1:${PORT}
+				;;
+			"off")
+				echo "Disable forarding localhost:${PORT} to ${NODE}:${PORT}"
+				VBoxManage controlvm ${NODE} natpf1 delete "${NODE}-${PORT}"
+				sudo iptables -t nat -D PREROUTING -p tcp \
+					-d ${NODEIP} --dport ${PORT} \
+					-j DNAT --to-destination 127.0.0.1:${PORT}
+				sudo iptables -t nat -D OUTPUT -p tcp \
+					-d ${NODEIP} --dport ${PORT} \
+					-j DNAT --to-destination 127.0.0.1:${PORT}
+				;;
+		esac
+		;;
+	"web-forward")
+		shift
+		NODE=${2:-worker}
+		NODEIP=$(host ${NODE} | grep address | cut -d' ' -f4)
+		PORT=443
+
+		case $1 in
+			"on")
+				echo "Enable forwarding localhost:${PORT} to ${NODE}:${PORT}"
+				VBoxManage controlvm ${NODE} natpf1 "${NODE}-${PORT},tcp,127.0.0.1,${PORT},,${PORT}"
+				sudo iptables -t nat -A PREROUTING -p tcp \
+					-d ${NODEIP} --dport ${PORT} \
+					-j DNAT --to-destination 127.0.0.1:${PORT}
+				sudo iptables -t nat -A OUTPUT -p tcp \
+					-d ${NODEIP} --dport ${PORT} \
+					-j DNAT --to-destination 127.0.0.1:${PORT}
+				;;
+			"off")
+				echo "Disable forarding localhost:${PORT} to ${NODE}:${PORT}"
+				VBoxManage controlvm ${NODE} natpf1 delete "${NODE}-${PORT}"
+				sudo iptables -t nat -D PREROUTING -p tcp \
+					-d ${NODEIP} --dport ${PORT} \
+					-j DNAT --to-destination 127.0.0.1:${PORT}
+				sudo iptables -t nat -D OUTPUT -p tcp \
+					-d ${NODEIP} --dport ${PORT} \
+					-j DNAT --to-destination 127.0.0.1:${PORT}
+				;;
+		esac
 		;;
 	"vm")
 		shift
@@ -358,7 +417,7 @@ case $1 in
 		echo $(basename $0) config ...
 		echo $(basename $0) secret-create
 		echo $(basename $0) "state [list/save/load] [config/secret/data] [state_name, ex: date-stage-env]"
-		echo $(basename $0) "ssh-forward [on/off]"
+		echo $(basename $0) "[ssh-forward/kube-forward/web-forward] [on/off] [nodes]"
 		echo $(basename $0) "[network/vm] [create/delete]"
 		;;
 esac
