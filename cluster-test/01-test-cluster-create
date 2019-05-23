@@ -52,3 +52,11 @@ cd ../../ceph-adm/
 ./zss0 mdsmount
 cd -
 
+cd ../../kube-adm/
+./zss0 state load config ${BASECONFIG}
+MASTER=$(echo $(./zss0 env | grep "MASTERS" | cut -d: -f2) | cut -d' ' -f1)
+MASTERIP=$(cat /etc/hosts | grep " ${MASTER}\$" | cut -d' ' -f1)
+./zss0 preflight
+./zss0 network up
+./zss0 secret-create --apiserver-advertise-address ${MASTERIP} --ignore-preflight-errors=all
+cd -
