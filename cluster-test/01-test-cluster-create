@@ -33,6 +33,8 @@ cd .
 ./vboxvm ssh-forward off
 ./vboxvm config rsshport ${SSHPORT}
 ./vboxvm ssh-forward on
+./vboxvm kube-forward on
+./vboxvm web-forward on
 cd -
 
 cd ../../node-adm/
@@ -60,5 +62,6 @@ MASTERIP=$(host ${MASTER} | grep address | rev | cut -d' ' -f1 | rev)
 ./zss0 network up
 ./zss0 secret-create --apiserver-advertise-address ${MASTERIP} --ignore-preflight-errors=all
 ./zss0 join
+./zss0 config
 cd -
 
