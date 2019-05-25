@@ -1,3 +1,5 @@
+kube-apps-ctrl
+kube-apps-platform
 .secret
 .config
 .store
