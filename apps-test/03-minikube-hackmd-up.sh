@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # for zss 0.5.0
-export ZSS_STORE=~/store
+export ZSS_STORE=${PWD}/.store
 
 APPNAME=hackmd
 APPCTRL=app-${APPNAME}-ctrl
