@@ -7,6 +7,7 @@
 BASECONFIG=$1
 APPLYLOG=${PWD}/${BASECONFIG}-apply.log
 CHECKLOG=${PWD}/${BASECONFIG}-check.log
+export ZSS_STORE=~/store
 
 cd .
 ./vboxvm ssh-forward off
@@ -62,6 +63,6 @@ MASTERIP=$(host ${MASTER} | grep address | rev | cut -d' ' -f1 | rev)
 ./zss0 network up
 ./zss0 secret-create --apiserver-advertise-address ${MASTERIP} --ignore-preflight-errors=all
 ./zss0 join
-./zss0 config
+./zss0 kubecopy
 cd -
 
