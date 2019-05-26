@@ -1,8 +1,19 @@
 #!/bin/bash
 
 # assumes:
-# - $1 is the config state of zerus-test and node-adm
-# - "../node-adm" exists
+# - $1 is the config state of:
+#   zerus-test
+#   node-adm
+#   kube-adm
+#   kube-apps-platform
+#   kube-apps-ctrl
+#
+# - test environments:
+#   (zerus-test) iso
+#   (node-adm) aptproxy
+#   (node-adm) registryproxyurl
+#
+# - the store location (ZSS_STORE): ~/store
 
 BASECONFIG=$1
 APPLYLOG=${PWD}/${BASECONFIG}-apply.log
@@ -24,7 +35,7 @@ cd ../../node-adm/
 SSHPORT=$(./zss0 env | grep "SECURE_PORT" | cut -d: -f2)
 ./zss0 sshclean
 ./zss0 sshwait
-./zss0 sshcopy
+./zss0 sshcopy-force
 ./zss0 operate on
 ./zss0 apply | tee ${APPLYLOG}
 ./zss0 reboot
@@ -42,6 +53,7 @@ cd ../../node-adm/
 ./zss0 sshwait
 ./zss0 config nodectl "ssh -p ${SSHPORT}"
 ./zss0 check | tee ${CHECKLOG}
+./zss0 exec master "sudo ufw allow from 10.0.2.2 to any proto tcp port 6443 comment 'kube-adm'"
 cd -
 
 cd ../../ceph-adm/
@@ -64,5 +76,17 @@ MASTERIP=$(host ${MASTER} | grep address | rev | cut -d' ' -f1 | rev)
 ./zss0 secret-create --apiserver-advertise-address ${MASTERIP} --ignore-preflight-errors=all
 ./zss0 join
 ./zss0 kubecopy
+cd -
+
+cd ../../kube-apps-platform/
+./zss0 state load config ${BASECONFIG}
+./zss0 state load secret ${BASECONFIG}
+./zss0 certs on
+./zss0 ing on
+cd -
+
+cd ../../kube-apps-ctrl/
+./app-gitea-ctrl init
+./app-gitea-ctrl on
 cd -
 

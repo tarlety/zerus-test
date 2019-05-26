@@ -34,7 +34,7 @@
 #------------------------------------------------------------------------------
 # Environments:
 
-VERSION=0.4.3
+VERSION=0.4.5
 SCRIPTNAME=vboxvm
 APPNAME=vboxvm
 SECRET=${SECRET:-"${PWD}/.secret/${SCRIPTNAME}"}
@@ -285,7 +285,7 @@ case $1 in
 						-j DNAT --to-destination 127.0.0.1:${LSSHPORT}
 					;;
 				"off")
-					echo "Disable forarding localhost:${LSSHPORT} to ${VMNAME}:${RSSHPORT}"
+					echo "Disable forwarding localhost:${LSSHPORT} to ${VMNAME}:${RSSHPORT}"
 					VBoxManage controlvm ${VMNAME} natpf1 delete "ssh-${VMNAME}"
 					sudo iptables -t nat -D PREROUTING -p tcp \
 						-d ${VMIP} --dport ${RSSHPORT} \
@@ -315,7 +315,7 @@ case $1 in
 					-j DNAT --to-destination 127.0.0.1:${PORT}
 				;;
 			"off")
-				echo "Disable forarding localhost:${PORT} to ${NODE}:${PORT}"
+				echo "Disable forwarding localhost:${PORT} to ${NODE}:${PORT}"
 				VBoxManage controlvm ${NODE} natpf1 delete "${NODE}-${PORT}"
 				sudo iptables -t nat -D PREROUTING -p tcp \
 					-d ${NODEIP} --dport ${PORT} \
@@ -345,7 +345,7 @@ case $1 in
 						-j DNAT --to-destination 127.0.0.1:${PORT}
 					;;
 				"off")
-					echo "Disable forarding localhost:${PORT} to ${NODE}:${PORT}"
+					echo "Disable forwarding localhost:${PORT} to ${NODE}:${PORT}"
 					VBoxManage controlvm ${NODE} natpf1 delete "${NODE}-${PORT}"
 					sudo iptables -t nat -D PREROUTING -p tcp \
 						-d ${NODEIP} --dport ${PORT} \
