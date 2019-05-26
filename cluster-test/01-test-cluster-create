@@ -89,6 +89,11 @@ cd ../../kube-apps-platform/
 ./zss0 ing on
 cd -
 
+cd ../../node-adm/
+./zss0 exec master "sudo mkdir -p /mnt/misc/mds/kube-apps/gitea/data"
+./zss0 exec master "sudo mkdir -p /mnt/misc/mds/kube-apps/gitea/backup"
+cd -
+
 cd ../../kube-apps-ctrl/
 ./app-gitea-ctrl init
 ./app-gitea-ctrl on
