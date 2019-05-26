@@ -1,19 +1,23 @@
 #!/bin/bash
 
 # assumes:
-# - $1 is the config state of:
+#
+# - $1 for the config state of:
 #   zerus-test
 #   node-adm
 #   kube-adm
 #   kube-apps-platform
 #   kube-apps-ctrl
 #
-# - test environments:
+# - configure environments:
 #   (zerus-test) iso
-#   (node-adm) aptproxy
 #   (node-adm) registryproxyurl
 #
+# - a local apt-cacher-ng server
+#
 # - the store location (ZSS_STORE): ~/store
+#
+# - gpg key without password
 
 BASECONFIG=$1
 APPLYLOG=${PWD}/${BASECONFIG}-apply.log
