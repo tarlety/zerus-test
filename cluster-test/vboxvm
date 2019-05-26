@@ -40,7 +40,7 @@ APPNAME=vboxvm
 SECRET=${SECRET:-"${PWD}/.secret/${SCRIPTNAME}"}
 CONFIG=${CONFIG:-"${PWD}/.config/${SCRIPTNAME}"}
 
-RAMSIZE=1024
+RAMSIZE=2048
 DISKPATHBASE="${HOME}/VirtualBox VMs"
 
 DEFAULT_STORE=${STORE:-"${PWD}/.store/${SCRIPTNAME}"}
@@ -365,6 +365,9 @@ case $1 in
 				PASSWORD="$(gpg -d ${PASSWORD_FILE})"
 				for VMNAME in ${VMSPEC}
 				do
+					# https://askubuntu.com/questions/365615/how-do-i-enable-multiple-cores-in-my-virtual-enviroment
+					# - kubernetes nodes requires at least 2 cpus cores
+					# - to enable multiple cores in virtualbox: Ubuntu_64, ipacpi
 					VBoxManage createvm --name ${VMNAME} --register
 					VBoxManage modifyvm ${VMNAME} \
 						--cpus 2 \
@@ -372,7 +375,8 @@ case $1 in
 						--acpi on \
 						--boot2 dvd \
 						--nic1 nat --nic2 intnet \
-						--ostype Ubuntu
+						--ioapic on \
+						--ostype Ubuntu_64
 					VBoxManage storagectl ${VMNAME} --name "SATA Controller" --add sata
 					VBoxManage storagectl ${VMNAME} --name "IDE Controller" --add ide
 
