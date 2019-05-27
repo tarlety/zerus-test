@@ -5,7 +5,10 @@
 # - prepare "20190527-test-zerus" config/secret state for:
 #   zerus-test
 #   node-adm
+#   ceph-adm
 #   kube-adm
+#   kube-apps-platform
+#   kube-apps-ctrl
 #
 # - configure environments:
 #   (zerus-test) iso
@@ -15,7 +18,7 @@
 #
 # - the store location (ZSS_STORE): ~/store
 #
-# - gpg key without password
+# - gpg key without password, ex: test-zerus
 
 BASECONFIG=20190527-test-zerus
 APPLYLOG=${PWD}/${BASECONFIG}-apply.log
@@ -90,6 +93,33 @@ case $1 in
 		./vboxvm kube-forward on ${MASTER}
 		./vboxvm web-forward on ${WORKER}
 		cd -
+
+		cd ../../kube-apps-platform/
+		./zss0 state load config ${BASECONFIG}
+		./zss0 state load secret ${BASECONFIG}
+		./zss0 certs on
+		./zss0 ing on
+		cd -
+
+		cd ../../ceph-adm/
+		./zss0 kube-secret up app-gitea
+		cd -
+
+		cd ../../kube-apps-ctrl/
+		./app-gitea-ctrl state load config ${BASECONFIG}
+		./app-gitea-ctrl state load secret ${BASECONFIG}
+		APP_BASEDIR=$(./app-gitea-ctrl env | grep APP_BASEDIR | cut -d: -f2-)
+		cd -
+
+		cd ../../node-adm/
+		./zss0 exec ${MASTER} "sudo mkdir -p ${APP_BASEDIR}/data ${APP_BASEDIR}/backup"
+		cd -
+
+		cd ../../kube-apps-ctrl/
+		./app-gitea-ctrl init
+		./app-gitea-ctrl on
+		cd -
+
 		;;
 	"clean")
 		cd ../../kube-adm/

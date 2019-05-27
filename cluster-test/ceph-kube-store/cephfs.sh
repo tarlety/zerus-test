@@ -30,20 +30,3 @@ spec:
   persistentVolumeReclaimPolicy: Retain
 EOF
 
-kubectl get secret -n ${NAMESPACE} | grep ceph-secret
-if [ $? -eq 1 ]
-then
-	KEYGENERATOR="ws ssh ws sudo cat store/ceph/etc/ceph/admin.secret"
-
-	cat <<EOF | kubectl create -f -
-apiVersion: v1
-data:
-  key: $($KEYGENERATOR | base64)
-kind: Secret
-metadata:
-  name: ceph-secret
-  namespace: $NAMESPACE
-type: Opaque
-EOF
-fi
-
