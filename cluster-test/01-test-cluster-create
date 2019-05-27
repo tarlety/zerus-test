@@ -49,8 +49,6 @@ cd .
 ./vboxvm ssh-forward off
 ./vboxvm config rsshport ${SSHPORT}
 ./vboxvm ssh-forward on
-./vboxvm kube-forward on
-./vboxvm web-forward on
 cd -
 
 cd ../../node-adm/
@@ -77,11 +75,17 @@ cd -
 cd ../../kube-adm/
 ./zss0 state load config ${BASECONFIG}
 MASTER=$(echo $(./zss0 env | grep "MASTERS" | cut -d: -f2) | cut -d' ' -f1)
+WORKER=$(echo $(./zss0 env | grep "WORKERS" | cut -d: -f2) | cut -d' ' -f1)
 MASTERIP=$(host ${MASTER} | grep address | rev | cut -d' ' -f1 | rev)
 ./zss0 preflight
 ./zss0 network up
 ./zss0 secret-create --apiserver-advertise-address ${MASTERIP} --ignore-preflight-errors=all
 ./zss0 join
 ./zss0 kubecopy
+cd -
+
+cd .
+./vboxvm kube-forward on ${MASTER}
+./vboxvm web-forward on ${WORKER}
 cd -
 
