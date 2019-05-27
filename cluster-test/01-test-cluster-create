@@ -59,7 +59,6 @@ cd ../../node-adm/
 ./zss0 sshwait
 ./zss0 config nodectl "ssh -p ${SSHPORT}"
 ./zss0 check | tee ${CHECKLOG}
-./zss0 exec master "sudo ufw allow from 10.0.2.2 to any proto tcp port 6443 comment 'kube-adm'"
 cd -
 
 cd ../../ceph-adm/
@@ -71,6 +70,12 @@ cd ../../ceph-adm/
 ./zss0 osd up
 ./zss0 mds up
 ./zss0 mdsmount
+cd -
+
+cd ../../node-adm/
+./zss0 exec ${MASTER} "sudo ufw allow from 10.0.2.2 to any proto tcp port 6443 comment 'kube-adm'"
+./zss0 exec ${MASTER} "sudo mkdir -p /mnt/misc/mds/kube-apps/gitea/data"
+./zss0 exec ${MASTER} "sudo mkdir -p /mnt/misc/mds/kube-apps/gitea/backup"
 cd -
 
 cd ../../kube-adm/
@@ -89,11 +94,6 @@ cd ../../kube-apps-platform/
 ./zss0 state load config ${BASECONFIG}
 ./zss0 certs on
 ./zss0 ing on
-cd -
-
-cd ../../node-adm/
-./zss0 exec master "sudo mkdir -p /mnt/misc/mds/kube-apps/gitea/data"
-./zss0 exec master "sudo mkdir -p /mnt/misc/mds/kube-apps/gitea/backup"
 cd -
 
 cd ../../kube-apps-ctrl/
