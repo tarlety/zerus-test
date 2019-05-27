@@ -9,7 +9,7 @@ TYPENAME=$6
 
 case ${ACTION} in
 	"create")
-		if [ "$NAMESPACE" == "" ] || [ "$PVCNAME" == "" ] || [ "$CAPACITY" == "" ] || [ "$HOSTPATH" == "" ] ; then
+		if [ "$NAMESPACE" == "" ] || [ "$PVCNAME" == "" ] || [ "$CAPACITY" == "" ] || [ "$PATHNAME" == "" ] || [ "$TYPENAME" == "" ] ; then
 			echo Ex: $0 namespace pvc-name 5Gi /data/vol-path
 			exit 1
 		fi
