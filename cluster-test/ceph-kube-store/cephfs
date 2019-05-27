@@ -43,7 +43,7 @@ EOF
 		kubectl delete pv ${NAMESPACE}-${PVCNAME}
 		;;
 	"secret")
-		cd ../../../ceph-adm/
+		cd $(dirname $0)/../../../ceph-adm/
 		./zss0 kube-secret up ${NAMESPACE}
 		cd -
 		;;
