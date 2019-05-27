@@ -1,11 +1,20 @@
 #!/bin/bash
 
-NAMESPACE=$1
-PVCNAME=$2
-CAPACITY=$3
-PATHNAME=$4
-TYPENAME=$5
+ACTION=$1
+NAMESPACE=$2
+PVCNAME=$3
+CAPACITY=$4
+PATHNAME=$5
+TYPENAME=$6
 
+case ${ACTION} in
+	"create")
+		if [ "$NAMESPACE" == "" ] || [ "$PVCNAME" == "" ] || [ "$CAPACITY" == "" ] || [ "$HOSTPATH" == "" ] ; then
+			echo Ex: $0 namespace pvc-name 5Gi /data/vol-path
+			exit 1
+		fi
+
+		cat <<EOF | kubectl create -f -
 cat <<EOF | kubectl create -f -
 apiVersion: v1
 kind: PersistentVolume
@@ -29,4 +38,13 @@ spec:
     readOnly: false
   persistentVolumeReclaimPolicy: Retain
 EOF
-
+		;;
+	"delete")
+		kubectl delete pv ${NAMESPACE}-${PVCNAME}
+		;;
+	"secret")
+		cd ../../../ceph-adm/
+		./zss0 kube-secret up ${NAMESPACE}
+		cd -
+		;;
+esac
