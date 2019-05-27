@@ -101,21 +101,8 @@ case $1 in
 		./zss0 ing on
 		cd -
 
-		cd ../../ceph-adm/
-		./zss0 kube-secret up app-gitea
-		cd -
-
 		cd ../../kube-apps-ctrl/
 		./app-gitea-ctrl state load config ${BASECONFIG}
-		./app-gitea-ctrl state load secret ${BASECONFIG}
-		APP_BASEDIR=$(./app-gitea-ctrl env | grep APP_BASEDIR | cut -d: -f2-)
-		cd -
-
-		cd ../../node-adm/
-		./zss0 exec ${MASTER} "sudo mkdir -p ${APP_BASEDIR}/data ${APP_BASEDIR}/backup"
-		cd -
-
-		cd ../../kube-apps-ctrl/
 		./app-gitea-ctrl init
 		./app-gitea-ctrl on
 		cd -
