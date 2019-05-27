@@ -68,10 +68,6 @@ cd ../../ceph-adm/
 ./zss0 mdsmount
 cd -
 
-cd ../../node-adm/
-./zss0 exec ${MASTER} "sudo ufw allow from 10.0.2.2 to any proto tcp port 6443 comment 'kube-adm'"
-cd -
-
 cd ../../kube-adm/
 ./zss0 state load config ${BASECONFIG}
 MASTER=$(echo $(./zss0 env | grep "MASTERS" | cut -d: -f2) | cut -d' ' -f1)
@@ -82,6 +78,10 @@ MASTERIP=$(host ${MASTER} | grep address | rev | cut -d' ' -f1 | rev)
 ./zss0 secret-create --apiserver-advertise-address ${MASTERIP} --ignore-preflight-errors=all
 ./zss0 join
 ./zss0 kubecopy
+cd -
+
+cd ../../node-adm/
+./zss0 exec ${MASTER} "sudo ufw allow from 10.0.2.2 to any proto tcp port 6443 comment 'kube-adm'"
 cd -
 
 cd .
