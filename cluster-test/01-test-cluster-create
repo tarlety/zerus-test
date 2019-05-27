@@ -6,8 +6,6 @@
 #   zerus-test
 #   node-adm
 #   kube-adm
-#   kube-apps-platform
-#   kube-apps-ctrl
 #
 # - configure environments:
 #   (zerus-test) iso
@@ -74,8 +72,6 @@ cd -
 
 cd ../../node-adm/
 ./zss0 exec ${MASTER} "sudo ufw allow from 10.0.2.2 to any proto tcp port 6443 comment 'kube-adm'"
-./zss0 exec ${MASTER} "sudo mkdir -p /mnt/misc/mds/kube-apps/gitea/data"
-./zss0 exec ${MASTER} "sudo mkdir -p /mnt/misc/mds/kube-apps/gitea/backup"
 cd -
 
 cd ../../kube-adm/
@@ -87,18 +83,5 @@ MASTERIP=$(host ${MASTER} | grep address | rev | cut -d' ' -f1 | rev)
 ./zss0 secret-create --apiserver-advertise-address ${MASTERIP} --ignore-preflight-errors=all
 ./zss0 join
 ./zss0 kubecopy
-cd -
-
-cd ../../kube-apps-platform/
-./zss0 state load secret ${BASECONFIG}
-./zss0 state load config ${BASECONFIG}
-./zss0 certs on
-./zss0 ing on
-cd -
-
-cd ../../kube-apps-ctrl/
-./app-gitea-ctrl state load config ${BASECONFIG}
-./app-gitea-ctrl init
-./app-gitea-ctrl on
 cd -
 
