@@ -2,7 +2,7 @@
 
 # assumes:
 #
-# - $1 for the config state of:
+# - prepare "20190527-test-zerus" config/secret state for:
 #   zerus-test
 #   node-adm
 #   kube-adm
@@ -19,7 +19,7 @@
 #
 # - gpg key without password
 
-BASECONFIG=$1
+BASECONFIG=20190527-test-zerus
 APPLYLOG=${PWD}/${BASECONFIG}-apply.log
 CHECKLOG=${PWD}/${BASECONFIG}-check.log
 export ZSS_STORE=~/store
@@ -29,6 +29,7 @@ cd .
 ./vboxvm vm delete
 ./vboxvm network delete
 ./vboxvm state load config ${BASECONFIG}
+./vboxvm state load secret ${BASECONFIG}
 ./vboxvm network create
 ./vboxvm vm create
 ./vboxvm ssh-forward on
@@ -36,6 +37,7 @@ cd -
 
 cd ../../node-adm/
 ./zss0 state load config ${BASECONFIG}
+./zss0 state load secret ${BASECONFIG}
 SSHPORT=$(./zss0 env | grep "SECURE_PORT" | cut -d: -f2)
 ./zss0 sshclean
 ./zss0 sshwait
@@ -83,8 +85,8 @@ MASTERIP=$(host ${MASTER} | grep address | rev | cut -d' ' -f1 | rev)
 cd -
 
 cd ../../kube-apps-platform/
-./zss0 state load config ${BASECONFIG}
 ./zss0 state load secret ${BASECONFIG}
+./zss0 state load config ${BASECONFIG}
 ./zss0 certs on
 ./zss0 ing on
 cd -
@@ -95,6 +97,7 @@ cd ../../node-adm/
 cd -
 
 cd ../../kube-apps-ctrl/
+./app-gitea-ctrl state load config ${BASECONFIG}
 ./app-gitea-ctrl init
 ./app-gitea-ctrl on
 cd -
