@@ -22,70 +22,89 @@ APPLYLOG=${PWD}/${BASECONFIG}-apply.log
 CHECKLOG=${PWD}/${BASECONFIG}-check.log
 export ZSS_STORE=~/store
 
-cd .
-./vboxvm ssh-forward off
-./vboxvm vm delete
-./vboxvm network delete
-./vboxvm state load config ${BASECONFIG}
-./vboxvm state load secret ${BASECONFIG}
-./vboxvm network create
-./vboxvm vm create
-./vboxvm ssh-forward on
-cd -
+case $1 in
+	"go")
+		cd .
+		./vboxvm ssh-forward off
+		./vboxvm vm delete
+		./vboxvm network delete
+		./vboxvm state load config ${BASECONFIG}
+		./vboxvm state load secret ${BASECONFIG}
+		./vboxvm network create
+		./vboxvm vm create
+		./vboxvm ssh-forward on
+		cd -
 
-cd ../../node-adm/
-./zss0 state load config ${BASECONFIG}
-./zss0 state load secret ${BASECONFIG}
-SSHPORT=$(./zss0 env | grep "SECURE_PORT" | cut -d: -f2)
-./zss0 sshclean
-./zss0 sshwait
-./zss0 sshcopy-force
-./zss0 operate on
-./zss0 apply | tee ${APPLYLOG}
-./zss0 reboot
-cd -
+		cd ../../node-adm/
+		./zss0 state load config ${BASECONFIG}
+		./zss0 state load secret ${BASECONFIG}
+		SSHPORT=$(./zss0 env | grep "SECURE_PORT" | cut -d: -f2)
+		./zss0 sshclean
+		./zss0 sshwait
+		./zss0 sshcopy-force
+		./zss0 operate on
+		./zss0 apply | tee ${APPLYLOG}
+		./zss0 reboot
+		cd -
 
-cd .
-./vboxvm ssh-forward off
-./vboxvm config rsshport ${SSHPORT}
-./vboxvm ssh-forward on
-cd -
+		cd .
+		./vboxvm ssh-forward off
+		./vboxvm config rsshport ${SSHPORT}
+		./vboxvm ssh-forward on
+		cd -
 
-cd ../../node-adm/
-./zss0 sshwait
-./zss0 config nodectl "ssh -p ${SSHPORT}"
-./zss0 check | tee ${CHECKLOG}
-cd -
+		cd ../../node-adm/
+		./zss0 sshwait
+		./zss0 config nodectl "ssh -p ${SSHPORT}"
+		./zss0 check | tee ${CHECKLOG}
+		cd -
 
-cd ../../ceph-adm/
-./zss0 state load config ${BASECONFIG}
-./zss0 secret-create
-./zss0 preflight
-./zss0 network up
-./zss0 mon up
-./zss0 osd up
-./zss0 mds up
-./zss0 mdsmount
-cd -
+		cd ../../ceph-adm/
+		./zss0 state load config ${BASECONFIG}
+		./zss0 secret-create
+		./zss0 preflight
+		./zss0 network up
+		./zss0 mon up
+		./zss0 osd up
+		./zss0 mds up
+		./zss0 mdsmount
+		cd -
 
-cd ../../kube-adm/
-./zss0 state load config ${BASECONFIG}
-MASTER=$(echo $(./zss0 env | grep "MASTERS" | cut -d: -f2) | cut -d' ' -f1)
-WORKER=$(echo $(./zss0 env | grep "WORKERS" | cut -d: -f2) | cut -d' ' -f1)
-MASTERIP=$(host ${MASTER} | grep address | rev | cut -d' ' -f1 | rev)
-./zss0 preflight
-./zss0 network up
-./zss0 secret-create --apiserver-advertise-address ${MASTERIP} --ignore-preflight-errors=all
-./zss0 join
-./zss0 kubecopy
-cd -
+		cd ../../kube-adm/
+		./zss0 state load config ${BASECONFIG}
+		MASTER=$(echo $(./zss0 env | grep "MASTERS" | cut -d: -f2) | cut -d' ' -f1)
+		WORKER=$(echo $(./zss0 env | grep "WORKERS" | cut -d: -f2) | cut -d' ' -f1)
+		MASTERIP=$(host ${MASTER} | grep address | rev | cut -d' ' -f1 | rev)
+		./zss0 preflight
+		./zss0 network up
+		./zss0 secret-create --apiserver-advertise-address ${MASTERIP} --ignore-preflight-errors=all
+		./zss0 join
+		./zss0 kubecopy
+		cd -
 
-cd ../../node-adm/
-./zss0 exec ${MASTER} "sudo ufw allow from 10.0.2.2 to any proto tcp port 6443 comment 'kube-adm'"
-cd -
+		cd ../../node-adm/
+		./zss0 exec ${MASTER} "sudo ufw allow from 10.0.2.2 to any proto tcp port 6443 comment 'kube-adm'"
+		cd -
 
-cd .
-./vboxvm kube-forward on ${MASTER}
-./vboxvm web-forward on ${WORKER}
-cd -
+		cd .
+		./vboxvm kube-forward on ${MASTER}
+		./vboxvm web-forward on ${WORKER}
+		cd -
+		;;
+	"clean")
+		cd ../../kube-adm/
+		./zss0 state load config ${BASECONFIG}
+		MASTER=$(echo $(./zss0 env | grep "MASTERS" | cut -d: -f2) | cut -d' ' -f1)
+		WORKER=$(echo $(./zss0 env | grep "WORKERS" | cut -d: -f2) | cut -d' ' -f1)
+		MASTERIP=$(host ${MASTER} | grep address | rev | cut -d' ' -f1 | rev)
+		cd -
 
+		cd .
+		./vboxvm ssh-forward off
+		./vboxvm vm delete
+		./vboxvm network delete
+		./vboxvm kube-forward off ${MASTER}
+		./vboxvm web-forward off ${WORKER}
+		cd -
+		;;
+esac
