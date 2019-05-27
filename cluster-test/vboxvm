@@ -299,7 +299,7 @@ case $1 in
 		;;
 	"kube-forward")
 		shift
-		NODE=${1:-master}
+		NODE=${2:-master}
 		NODEIP=$(host ${NODE} | grep address | cut -d' ' -f4)
 		PORT=6443
 
@@ -328,7 +328,7 @@ case $1 in
 		;;
 	"web-forward")
 		shift
-		NODE=${1:-worker}
+		NODE=${2:-worker}
 		NODEIP=$(host ${NODE} | grep address | cut -d' ' -f4)
 
 		for PORT in 80 443
