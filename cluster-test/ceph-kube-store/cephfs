@@ -15,7 +15,6 @@ case ${ACTION} in
 		fi
 
 		cat <<EOF | kubectl create -f -
-cat <<EOF | kubectl create -f -
 apiVersion: v1
 kind: PersistentVolume
 metadata:
