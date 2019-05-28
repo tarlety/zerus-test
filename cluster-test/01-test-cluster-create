@@ -29,7 +29,7 @@ export ZSS_STORE=~/store
 
 case $1 in
 	"go")
-		cd ./vboxvm
+		cd ../vboxvm
 		./zss0 ssh-forward off
 		./zss0 vm delete
 		./zss0 network delete
@@ -52,7 +52,7 @@ case $1 in
 		./zss0 reboot
 		cd -
 
-		cd ./vboxvm
+		cd ../vboxvm
 		./zss0 ssh-forward off
 		./zss0 config rsshport ${SSHPORT}
 		./zss0 ssh-forward on
@@ -92,7 +92,7 @@ case $1 in
 		./zss0 exec ${MASTER} "sudo ufw allow from 10.0.2.2 to any proto tcp port 6443 comment 'kube-adm'"
 		cd -
 
-		cd ./vboxvm
+		cd ../vboxvm
 		./zss0 kube-forward on ${MASTER}
 		./zss0 web-forward on ${WORKER}
 		cd -
@@ -119,7 +119,7 @@ case $1 in
 		MASTERIP=$(host ${MASTER} | grep address | rev | cut -d' ' -f1 | rev)
 		cd -
 
-		cd ./vboxvm
+		cd ../vboxvm
 		./zss0 ssh-forward off
 		./zss0 vm delete
 		./zss0 network delete
