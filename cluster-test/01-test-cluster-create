@@ -19,6 +19,8 @@
 # - the store location (ZSS_STORE): ~/store
 #
 # - gpg key without password, ex: test-zerus
+#
+# - kube context name: admin@test-zerus
 
 BASECONFIG=20190527-test-zerus
 APPLYLOG=${PWD}/${BASECONFIG}-apply.log
@@ -83,6 +85,7 @@ case $1 in
 		./zss0 secret-create --apiserver-advertise-address ${MASTERIP} --ignore-preflight-errors=all
 		./zss0 join
 		./zss0 kubecopy
+		kubectl config use-context admin@test-zerus || exit 1
 		cd -
 
 		cd ../../node-adm/
