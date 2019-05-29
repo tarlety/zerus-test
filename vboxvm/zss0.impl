@@ -26,7 +26,7 @@ case $1 in
 		DEFAULT_ISO="ubuntu-18.04.1-server-amd64.iso"
 		;;
 	"vars")
-		RAMSIZE=2048
+		RAMSIZE=1536
 		DISKPATHBASE="${HOME}/VirtualBox VMs"
 		USERNAME_FILE=${SECRET}/username
 		PASSWORD_FILE=${SECRET}/password
