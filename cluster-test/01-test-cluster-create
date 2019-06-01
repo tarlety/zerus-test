@@ -94,7 +94,7 @@ case $1 in
 
 		cd ../vboxvm
 		./zss0 kube-forward on ${MASTER}
-		./zss0 web-forward on ${WORKER}
+		./zss0 web-forward on ${WORKER} 30443
 		cd -
 
 		cd ../../kube-apps-platform/
