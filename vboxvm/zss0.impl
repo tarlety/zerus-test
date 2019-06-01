@@ -6,7 +6,7 @@ case $1 in
 	"app")
 		PROJECTNAME=zerus-test
 		APPNAME=vboxvm
-		APPVERSION=0.1.0
+		APPVERSION=0.1.1
 		;;
 	"config")
 		CONFIGKEYS="vmspec diskmap_ingb lsshports rsshport iso"
@@ -133,33 +133,29 @@ case $1 in
 		"web-forward")
 			shift
 			NODE=${2:-worker}
+			PORT=${3:-30443}
 			NODEIP=$(host ${NODE} | grep address | cut -d' ' -f4)
 
-			for PORT in 80 443
-			do
-				case $1 in
-					"on")
-						echo "Enable forwarding localhost:${PORT} to ${NODE}:${PORT}"
-						VBoxManage controlvm ${NODE} natpf1 "${NODE}-${PORT},tcp,127.0.0.1,${PORT},,${PORT}"
-						sudo iptables -t nat -A PREROUTING -p tcp \
-							-d ${NODEIP} --dport ${PORT} \
-							-j DNAT --to-destination 127.0.0.1:${PORT}
-						sudo iptables -t nat -A OUTPUT -p tcp \
-							-d ${NODEIP} --dport ${PORT} \
-							-j DNAT --to-destination 127.0.0.1:${PORT}
-						;;
-					"off")
-						echo "Disable forwarding localhost:${PORT} to ${NODE}:${PORT}"
-						VBoxManage controlvm ${NODE} natpf1 delete "${NODE}-${PORT}"
-						sudo iptables -t nat -D PREROUTING -p tcp \
-							-d ${NODEIP} --dport ${PORT} \
-							-j DNAT --to-destination 127.0.0.1:${PORT}
-						sudo iptables -t nat -D OUTPUT -p tcp \
-							-d ${NODEIP} --dport ${PORT} \
-							-j DNAT --to-destination 127.0.0.1:${PORT}
-						;;
-				esac
-			done
+			case $1 in
+				"on")
+					echo "Enable forwarding to ${NODE}:443"
+					sudo iptables -t nat -A PREROUTING -p tcp \
+						-d ${NODEIP} --dport 443 \
+						-j DNAT --to-destination 127.0.0.1:30443
+					sudo iptables -t nat -A OUTPUT -p tcp \
+						-d ${NODEIP} --dport 443 \
+						-j DNAT --to-destination 127.0.0.1:30443
+					;;
+				"off")
+					echo "Disable forwarding localhost:${PORT} to ${NODE}:443"
+					sudo iptables -t nat -D PREROUTING -p tcp \
+						-d ${NODEIP} --dport 443 \
+						-j DNAT --to-destination 127.0.0.1:30443
+					sudo iptables -t nat -D OUTPUT -p tcp \
+						-d ${NODEIP} --dport 443 \
+						-j DNAT --to-destination 127.0.0.1:30443
+					;;
+			esac
 			;;
 		"vm")
 			shift
@@ -225,7 +221,7 @@ case $1 in
 		;;
 	#------------------------------------------------------------------------------
 	"usage")
-		echo $(basename $0) "[ssh-forward/kube-forward/web-forward] [on/off] [nodes]"
+		echo $(basename $0) "[ssh-forward/kube-forward/web-forward] [on/off] [node] [port]"
 		echo $(basename $0) "[network/vm] [create/delete]"
 		;;
 esac
