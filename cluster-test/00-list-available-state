@@ -4,8 +4,7 @@ echo -------------------------------------------------------
 echo vboxvm
 echo -------------------------------------------------------
 
-cd ../vboxvm/
-./zss0 state
+cd repo/zerus-test/vboxvm/
 ./zss0 env
 cd -
 
@@ -13,8 +12,7 @@ echo -------------------------------------------------------
 echo node-adm
 echo -------------------------------------------------------
 
-cd ../../node-adm/
-./zss0 state
+cd repo/node-adm/
 ./zss0 env
 cd -
 
@@ -22,8 +20,7 @@ echo -------------------------------------------------------
 echo ceph-adm
 echo -------------------------------------------------------
 
-cd ../../ceph-adm/
-./zss0 state
+cd repo/ceph-adm/
 ./zss0 env
 cd -
 
@@ -31,8 +28,7 @@ echo -------------------------------------------------------
 echo kube-adm
 echo -------------------------------------------------------
 
-cd ../../kube-adm/
-./zss0 state
+cd repo/kube-adm/
 ./zss0 env
 cd -
 
@@ -40,8 +36,15 @@ echo -------------------------------------------------------
 echo kube-apps-platform
 echo -------------------------------------------------------
 
-cd ../../kube-apps-platform/
-./zss0 state
+cd repo/kube-apps-platform/
 ./zss0 env
+cd -
+
+echo -------------------------------------------------------
+echo kube-apps-ctrl
+echo -------------------------------------------------------
+
+cd repo/kube-apps-ctrl/
+./app-gitea-ctrl env
 cd -
 

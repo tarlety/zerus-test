@@ -1,48 +1,23 @@
 #!/bin/bash
 
 # assumes:
-#
-# - prepare "20190527-test-zerus" config/secret state for:
-#   zerus-test
-#   node-adm
-#   ceph-adm
-#   kube-adm
-#   kube-apps-platform
-#   kube-apps-ctrl
-#
-# - configure environments:
-#   (zerus-test) iso
-#   (node-adm) registryproxyurl
-#
-# - a local apt-cacher-ng server
-#
-# - the store location (ZSS_STORE): ~/store
-#
-# - gpg key without password, ex: test-zerus
-#
-# - kube context name: admin@test-zerus
-
-BASECONFIG=20190527-test-zerus
-APPLYLOG=${PWD}/${BASECONFIG}-apply.log
-CHECKLOG=${PWD}/${BASECONFIG}-check.log
-export ZSS_STORE=~/store
+# 1. ./do preflight [your ISO file path] [your github account which stores ssh key]
+#    - NOTICE do preflight assumptions too.
+# 2. source ./do env
+# 3. ./01-* go
 
 case $1 in
 	"go")
-		cd ../vboxvm
+		cd repo/zerus-test/vboxvm
 		./zss0 ssh-forward off
 		./zss0 vm delete
 		./zss0 network delete
-		./zss0 state load config ${BASECONFIG}
-		./zss0 state load secret ${BASECONFIG}
 		./zss0 network create
 		./zss0 vm create
 		./zss0 ssh-forward on
 		cd -
 
-		cd ../../node-adm/
-		./zss0 state load config ${BASECONFIG}
-		./zss0 state load secret ${BASECONFIG}
+		cd repo/node-adm/
 		SSHPORT=$(./zss0 env | grep "SECURE_PORT" | cut -d: -f2)
 		./zss0 sshclean
 		./zss0 sshwait
@@ -52,20 +27,19 @@ case $1 in
 		./zss0 reboot
 		cd -
 
-		cd ../vboxvm
+		cd repo/zerus-test/vboxvm
 		./zss0 ssh-forward off
 		./zss0 config rsshport ${SSHPORT}
 		./zss0 ssh-forward on
 		cd -
 
-		cd ../../node-adm/
+		cd repo/node-adm/
 		./zss0 sshwait
 		./zss0 config nodectl "ssh -p ${SSHPORT}"
 		./zss0 check | tee ${CHECKLOG}
 		cd -
 
-		cd ../../ceph-adm/
-		./zss0 state load config ${BASECONFIG}
+		cd repo/ceph-adm/
 		./zss0 secret-create
 		./zss0 preflight
 		./zss0 network up
@@ -75,8 +49,7 @@ case $1 in
 		./zss0 mdsmount
 		cd -
 
-		cd ../../kube-adm/
-		./zss0 state load config ${BASECONFIG}
+		cd repo/kube-adm/
 		MASTER=$(echo $(./zss0 env | grep "MASTERS" | cut -d: -f2) | cut -d' ' -f1)
 		WORKER=$(echo $(./zss0 env | grep "WORKERS" | cut -d: -f2) | cut -d' ' -f1)
 		MASTERIP=$(host ${MASTER} | grep address | rev | cut -d' ' -f1 | rev)
@@ -84,47 +57,42 @@ case $1 in
 		./zss0 network up
 		./zss0 secret-create --apiserver-advertise-address ${MASTERIP} --ignore-preflight-errors=all
 		./zss0 join
-		./zss0 kubecopy
-		kubectl config use-context admin@test-zerus || exit 1
+		./zss0 kube-config-context
 		cd -
 
-		cd ../../node-adm/
+		cd repo/node-adm/
 		./zss0 exec ${MASTER} "sudo ufw allow from 10.0.2.2 to any proto tcp port 6443 comment 'kube-adm'"
 		cd -
 
-		cd ../vboxvm
+		cd repo/zerus-test/vboxvm
 		./zss0 kube-forward on ${MASTER}
 		./zss0 web-forward on ${WORKER} 30443
 		cd -
 
-		cd ../../kube-apps-platform/
-		./zss0 state load config ${BASECONFIG}
-		./zss0 state load secret ${BASECONFIG}
+		cd repo/kube-apps-platform/
 		./zss0 certs on
 		./zss0 ing on
 		cd -
 
-		cd ../../kube-apps-ctrl/
-		./app-gitea-ctrl state load config ${BASECONFIG}
+		cd repo/kube-apps-ctrl/
 		./app-gitea-ctrl init
 		./app-gitea-ctrl on
 		cd -
 
 		;;
 	"clean")
-		cd ../../kube-adm/
-		./zss0 state load config ${BASECONFIG}
+		cd repo/kube-adm/
 		MASTER=$(echo $(./zss0 env | grep "MASTERS" | cut -d: -f2) | cut -d' ' -f1)
 		WORKER=$(echo $(./zss0 env | grep "WORKERS" | cut -d: -f2) | cut -d' ' -f1)
 		MASTERIP=$(host ${MASTER} | grep address | rev | cut -d' ' -f1 | rev)
 		cd -
 
-		cd ../vboxvm
-		./zss0 ssh-forward off
+		cd repo/zerus-test/vboxvm
 		./zss0 vm delete
-		./zss0 network delete
+		./zss0 ssh-forward off
 		./zss0 kube-forward off ${MASTER}
 		./zss0 web-forward off ${WORKER}
+		./zss0 network delete
 		cd -
 		;;
 esac

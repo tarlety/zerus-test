@@ -1,0 +1,179 @@
+#!/bin/bash
+
+ZSS_STORE=${PWD}/repo/.store
+
+case $1 in
+"operator")
+	shift
+	case $1 in
+	"on")
+		echo "${USER} ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/${USER}
+		;;
+	"off")
+		sudo -n rm /etc/sudoers.d/${USER}
+		;;
+	esac
+	;;
+"repo")
+	shift
+	case $1 in
+	"init")
+		mkdir -p repo
+		cd repo
+		git clone https://github.com/tarlety/node-adm
+		git clone https://github.com/tarlety/ceph-adm
+		git clone https://github.com/tarlety/kube-adm
+		git clone https://github.com/tarlety/kube-apps-platform
+		git clone https://github.com/tarlety/kube-apps-ctrl
+		git clone https://github.com/tarlety/zerus-test
+		cd -
+		;;
+	"clean")
+		rm -rf repo
+		;;
+	esac
+	;;
+"config-and-secret")
+	shift
+	OPERATOR=${1:${USER}}
+	ISO=${2:-~/linux.iso}
+
+	DATE=`date +%Y%m%d`
+	BASENAME=${DATE}-zerus-test
+
+	mkdir -p .store
+	export ZSS_STORE
+
+	cd repo/node-adm
+	./zss0 config nodes 'master worker'
+	./zss0 config nodectl
+	./zss0 config nodectl_tty
+	./zss0 config hostfile
+	./zss0 config netplan "${PWD}/../../VirtualBoxVMConfigs/01-netcfg.yaml"
+	./zss0 config aptproxyfile "${PWD}/../../VirtualBoxVMConfigs/01proxy"
+	./zss0 config registryproxyurl
+	./zss0 config secure_port
+	./zss0 config dns1
+	./zss0 config dns2
+	./zss0 config ntp
+	./zss0 config smtp
+	./zss0 config operator ${OPERATOR}
+	./zss0 config gpgkey test-zerus
+	mkdir -p "${ZSS_STORE}/zerus/node-adm/secret"
+	echo "${OPERATOR}" | gpg -ear test-zerus -o ${ZSS_STORE}/zerus/node-adm/secret/grubuser
+	echo "Please_fill_your_password_here." | gpg -ear test-zerus -o ${ZSS_STORE}/zerus/node-adm/secret/grubpass
+	cd -
+
+	cd repo/ceph-adm
+	./zss0 config network
+	./zss0 config nodeadm "${PWD}/../node-adm"
+	./zss0 config monitors "master"
+	./zss0 config osdmap '( ["master"]="/dev/sdb /dev/sdc" ["worker"]="/dev/sdb /dev/sdc" )'
+	./zss0 config mdsnode 'master'
+	./zss0 config pgnum 64
+	./zss0 config gpgkey test-zerus
+	cd -
+
+	cd repo/kube-adm
+	./zss0 config kubernetes_version
+	./zss0 config network
+	./zss0 config nodeadm "${PWD}/../node-adm"
+	./zss0 config masters "master"
+	./zss0 config workers "worker"
+	./zss0 config gpgkey test-zerus
+	cd -
+
+	cd repo/kube-apps-platform
+	./zss0 config domain zerus
+	./zss0 config subject '/C=CN/ST=State/L=Location/O=Org/OU=Unit/CN=zerus'
+	./zss0 config hostctrl 'ssh ${OPERATOR}@master'
+	./zss0 config storagectrl "${PWD}/../../ceph-kube-store/cephfs"
+	./zss0 config gpgkey test-zerus
+	./zss0 secret-create
+	cd -
+
+	cd repo/kube-apps-ctrl
+	./app-gitea-ctrl config kubeapps_platform_dir "${PWD}/../kube-apps-platform"
+	./app-gitea-ctrl config app_basedir '/mnt/misc/mds/kube-store/app-gitea'
+	./app-gitea-ctrl config node_ports 32767
+	./app-gitea-ctrl config gpgkey test-zerus
+	cd -
+
+	cd repo/zerus-test/vboxvm
+	./zss0 config vmspec 'master worker'
+	./zss0 config diskmap_ingb '( ["master"]="10 10 10" ["worker"]="10 10 10" )'
+	./zss0 config lsshports '( ["master"]="2201" ["worker"]="2202" )'
+	./zss0 config rsshport 22
+	./zss0 config iso ${ISO}
+	./zss0 config gpgkey test-zerus
+	mkdir -p "${ZSS_STORE}/zerus-test/vboxvm/secret"
+	echo "${OPERATOR}" | gpg -ear test-zerus -o ${ZSS_STORE}/zerus-test/vboxvm/secret/username
+	echo "Please_fill_your_password_here." | gpg -ear test-zerus -o ${ZSS_STORE}/zerus-test/vboxvm/secret/password
+	cd -
+	;;
+"preflight")
+	shift
+	case $1 in
+	"on")
+		shift
+		$0 operator on
+		$0 repo clean
+
+		ISO=${1:-~/ubuntu.iso}
+		[ -e "${ISO}" ] || read -p "ISO (the ubuntu ISO file path):" ISO
+
+		OPERATOR=${2:-${USER}}
+		curl https://github.com/${OPERATOR}.keys || read -p "OPERATOR (the account to host ssh key on github):" OPERATOR
+
+		echo "Require gpg key 'test-zerus' without password."
+		gpg -k test-zerus || gpg --full-generate-key
+		gpg -k test-zerus || exit 3
+
+		echo "Require /etc/hosts to declare master, worker, and gitea.zerus."
+		grep master /etc/hosts && grep worker /etc/hosts && grep gitea.zerus /etc/hosts || exit 4
+
+		echo "Require apt cacher."
+		nc -z localhost 3142 || exit 5
+
+		echo "Require registry proxy."
+		curl http://localhost:5000/v2/_catalog || exit 6
+
+		$0 repo init
+		$0 config-and-secret ${OPERATOR} ${ISO}
+		;;
+	"off")
+		$0 repo clean
+		$0 operator off
+		;;
+	esac
+	;;
+"env")
+	export ZSS_STORE
+	;;
+*)
+	echo "Commands:"
+	echo $(basename $0) "operator [on/off]"
+	echo $(basename $0) "repo [init/clean]"
+	echo $(basename $0) "config-and-secret [isopath]"
+	echo $(basename $0) "preflight on [isopath] [operator]"
+	echo $(basename $0) "preflight off"
+	echo "source" $(basename $0) "env"
+	echo ""
+	echo "Test Example:"
+	echo "1. ./do preflight on ~/ubuntu.iso github_account"
+	echo "2. source ./do env"
+	echo "3. ./01-test-cluster-create go"
+	echo ""
+	echo "Clean-up Example:"
+	echo "1. ./01-test-cluster-create clean"
+	echo "2. ./do preflight off"
+	echo ""
+	echo "Assumptions:"
+	echo "- a prepared ubuntu.iso file"
+	echo "- the github_account stores the ssh public key."
+	echo "- gpg key 'test-zerus' without password"
+	echo "- /etc/hosts to declare master, worker, and gitea.zerus"
+	echo "- a local apt cacher"
+	echo "- a local registry proxy"
+	;;
+esac

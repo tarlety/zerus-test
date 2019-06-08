@@ -36,11 +36,11 @@ case $1 in
 		;;
 	"secret-create")
 		read -p "username: " USERNAME
-		echo "${USERNAME}" | gpg -ear ${GPGKEYNAME} -o ${USERNAME_FILE}
+		echo "${USERNAME}" | gpg -ear ${GPGKEY} -o ${USERNAME_FILE}
 
 		echo -n "password: "
 		read -s PASSWORD
-		echo "${PASSWORD}" | gpg -ear ${GPGKEYNAME} -o ${PASSWORD_FILE}
+		echo "${PASSWORD}" | gpg -ear ${GPGKEY} -o ${PASSWORD_FILE}
 		;;
 	"state-data-save")
 		;;
