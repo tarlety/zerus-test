@@ -75,6 +75,7 @@ case $1 in
 		cd -
 
 		cd repo/kube-apps-ctrl/
+		./app-gitea-ctrl secret-create
 		./app-gitea-ctrl init
 		./app-gitea-ctrl on
 		cd -

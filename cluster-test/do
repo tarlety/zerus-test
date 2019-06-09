@@ -52,7 +52,7 @@ case $1 in
 	./zss0 config netplan "${PWD}/../../VirtualBoxVMConfigs/01-netcfg.yaml"
 	./zss0 config aptproxyfile "${PWD}/../../VirtualBoxVMConfigs/01proxy"
 	./zss0 config registryproxyurl
-	./zss0 config secure_port
+	./zss0 config secure_port 2222
 	./zss0 config dns1
 	./zss0 config dns2
 	./zss0 config ntp
@@ -86,7 +86,7 @@ case $1 in
 	cd repo/kube-apps-platform
 	./zss0 config domain zerus
 	./zss0 config subject '/C=CN/ST=State/L=Location/O=Org/OU=Unit/CN=zerus'
-	./zss0 config hostctrl 'ssh ${OPERATOR}@master'
+	./zss0 config hostctrl "ssh ${OPERATOR}@master -p 2222"
 	./zss0 config storagectrl "${PWD}/../../ceph-kube-store/cephfs"
 	./zss0 config gpgkey test-zerus
 	./zss0 secret-create
