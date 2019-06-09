@@ -52,6 +52,7 @@ case $1 in
 	./zss0 config netplan "${PWD}/../../VirtualBoxVMConfigs/01-netcfg.yaml"
 	./zss0 config aptproxyfile "${PWD}/../../VirtualBoxVMConfigs/01proxy"
 	./zss0 config registryproxyurl
+	./zss0 config registryproxyhostport
 	./zss0 config secure_port 2222
 	./zss0 config dns1
 	./zss0 config dns2
