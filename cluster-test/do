@@ -137,7 +137,7 @@ case $1 in
 		nc -z localhost 3142 || exit 5
 
 		echo "Require registry proxy."
-		curl http://localhost:5000/v2/_catalog || exit 6
+		curl https://localhost:5000/v2/_catalog || exit 6
 
 		$0 repo init
 		$0 config-and-secret ${OPERATOR} ${ISO}
