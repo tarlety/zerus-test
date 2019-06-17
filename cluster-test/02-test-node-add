@@ -2,22 +2,24 @@
 
 # assumes:
 # 1. ./01-* go
-# 2. ./02-* HOST IP
+# 2. ./02-* HOST IP DISKS LSSHPORT
 
-NEWHOST=${1:-u3}
-NEWIP=${2:-10.13.13.103}
+HOST=${1:-u3}
+IP=${2:-10.13.13.103}
+DISKS=${3:-10 10 10}
+LSSHPORT=${4:-2203}
 
 cd repo/zerus-test/vboxvm
-./zss0 config vmspec 'u1 u2 u3'
-./zss0 config diskmap_ingb '( ["u1"]="10 10 10" ["u2"]="10 10 10" ["u3"]="10 10 10" )'
-./zss0 config lsshports '( ["u1"]="2201" ["u2"]="2202" ["u3"]="2203" )'
+./zss0 config vmspec "$(./zss0 env VMSPEC) u3"
+./zss0 config diskmap_ingb "( $(./zss0 env DISKMAP_INGB) [\"u3\"]=\"${DISKS}\" )"
+./zss0 config lsshports "( $(./zss0 env LSSHPORTS) [\"u3\"]=\"${LSSHPORT}\" )"
 ./zss0 config rsshport 22
 ./zss0 vm create u3
 ./zss0 ssh-forward on u3
 cd -
 
 cd repo/node-adm/
-./zss0 config nodes 'u1 u2 u3'
+./zss0 config nodes "$(./zss0 env NODES) u3"
 SSHPORT=$(./zss0 env | grep "SECURE_PORT" | cut -d: -f2)
 ./zss0 sshwait u3
 ./zss0 sshcopy-force u3
