@@ -142,7 +142,14 @@ case $1 in
 			if [ "$(eval echo \${!${KEY}[@]})" == "0" ]; then
 				eval echo \${${KEY}}
 			else
-				eval echo "{\${!${KEY}[@]}} -\> {\${${KEY}[@]}}"
+				eval HASHKEYS=\${!${KEY}[@]}
+				for HASHKEY in ${HASHKEYS}
+				do
+					echo -n '["'${HASHKEY}'"]="'
+					eval echo -n \"\${${KEY}[${HASHKEY}]}\"
+					echo -n '" '
+				done
+				echo
 			fi
 		else
 			echo =========================================================================
