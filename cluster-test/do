@@ -45,19 +45,18 @@ case $1 in
 	export ZSS_STORE
 
 	cd repo/node-adm
-	./zss0 config nodes 'master worker'
-	./zss0 config nodectl
-	./zss0 config nodectl_tty
-	./zss0 config hostfile
+	./zss0 config nodes 'u1 u2'
+	./zss0 config nodectl 'ssh'
+	./zss0 config nodectl_tty 'ssh -t'
+	./zss0 config hostfile '/etc/hosts'
 	./zss0 config netplan "${PWD}/../../VirtualBoxVMConfigs/01-netcfg.yaml"
 	./zss0 config aptproxyfile "${PWD}/../../VirtualBoxVMConfigs/01proxy"
-	./zss0 config registryproxyurl
-	./zss0 config registryproxyhostport
+	./zss0 config registryproxyhostport 'registry:5000'
 	./zss0 config secure_port 2222
-	./zss0 config dns1
-	./zss0 config dns2
-	./zss0 config ntp
-	./zss0 config smtp
+	./zss0 config dns1 '8.8.8.8'
+	./zss0 config dns2 '8.8.4.4'
+	./zss0 config ntp '91.189.89.199'
+	./zss0 config smtp localhost
 	./zss0 config operator ${OPERATOR}
 	./zss0 config gpgkey test-zerus
 	mkdir -p "${ZSS_STORE}/zerus/node-adm/secret"
@@ -68,26 +67,26 @@ case $1 in
 	cd repo/ceph-adm
 	./zss0 config network
 	./zss0 config nodeadm "${PWD}/../node-adm"
-	./zss0 config monitors "master"
-	./zss0 config osdmap '( ["master"]="/dev/sdb /dev/sdc" ["worker"]="/dev/sdb /dev/sdc" )'
-	./zss0 config mdsnode 'master'
+	./zss0 config monitors "u1"
+	./zss0 config osdmap '( ["u1"]="/dev/sdb /dev/sdc" ["u2"]="/dev/sdb /dev/sdc" )'
+	./zss0 config mdsnode 'u1'
 	./zss0 config pgnum 64
 	./zss0 config gpgkey test-zerus
 	cd -
 
 	cd repo/kube-adm
-	./zss0 config kubernetes_version
-	./zss0 config network
+	./zss0 config kubernetes_version '=1.14.2-00'
+	./zss0 config network '10.244.0.0/16'
 	./zss0 config nodeadm "${PWD}/../node-adm"
-	./zss0 config masters "master"
-	./zss0 config workers "worker"
+	./zss0 config masters "u1"
+	./zss0 config workers "u2"
 	./zss0 config gpgkey test-zerus
 	cd -
 
 	cd repo/kube-apps-platform
 	./zss0 config domain zerus
 	./zss0 config subject '/C=CN/ST=State/L=Location/O=Org/OU=Unit/CN=zerus'
-	./zss0 config hostctrl "ssh ${OPERATOR}@master -p 2222"
+	./zss0 config hostctrl "ssh ${OPERATOR}@u1 -p 2222"
 	./zss0 config storagectrl "${PWD}/../../ceph-kube-store/cephfs"
 	./zss0 config gpgkey test-zerus
 	./zss0 secret-create
@@ -101,9 +100,9 @@ case $1 in
 	cd -
 
 	cd repo/zerus-test/vboxvm
-	./zss0 config vmspec 'master worker'
-	./zss0 config diskmap_ingb '( ["master"]="10 10 10" ["worker"]="10 10 10" )'
-	./zss0 config lsshports '( ["master"]="2201" ["worker"]="2202" )'
+	./zss0 config vmspec 'u1 u2'
+	./zss0 config diskmap_ingb '( ["u1"]="10 10 10" ["u2"]="10 10 10" )'
+	./zss0 config lsshports '( ["u1"]="2201" ["u2"]="2202" )'
 	./zss0 config rsshport 22
 	./zss0 config iso ${ISO}
 	./zss0 config gpgkey test-zerus
@@ -130,14 +129,17 @@ case $1 in
 		gpg -k test-zerus || gpg --full-generate-key
 		gpg -k test-zerus || exit 3
 
-		echo "Require /etc/hosts to declare master, worker, and gitea.zerus."
-		grep master /etc/hosts && grep worker /etc/hosts && grep gitea.zerus /etc/hosts || exit 4
+		echo "Require /etc/hosts to declare u1/u2, registry, and gitea.zerus."
+		grep u1 /etc/hosts && grep u2 /etc/hosts && grep registry /etc/hosts && grep gitea.zerus /etc/hosts || exit 4
 
 		echo "Require apt cacher."
 		nc -z localhost 3142 || exit 5
 
 		echo "Require registry proxy."
 		curl -k https://localhost:5000/v2/_catalog || exit 6
+
+		echo "packages dependency check."
+		python -c "import json, yaml" || exit 7
 
 		$0 repo init
 		$0 config-and-secret ${OPERATOR} ${ISO}
@@ -164,6 +166,7 @@ case $1 in
 	echo "1. ./do preflight on ~/ubuntu.iso github_account"
 	echo "2. source ./do env"
 	echo "3. ./01-test-cluster-create go"
+	echo "maybe ./do operator off"
 	echo ""
 	echo "Clean-up Example:"
 	echo "1. ./01-test-cluster-create clean"
