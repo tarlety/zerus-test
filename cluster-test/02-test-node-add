@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# assumes:
+# 1. ./01-* go
+# 2. ./02-* HOST IP
+
+NEWHOST=${1:-u3}
+NEWIP=${2:-10.13.13.103}
+
+cd repo/zerus-test/vboxvm
+./zss0 config vmspec 'u1 u2 u3'
+./zss0 config diskmap_ingb '( ["u1"]="10 10 10" ["u2"]="10 10 10" ["u3"]="10 10 10" )'
+./zss0 config lsshports '( ["u1"]="2201" ["u2"]="2202" ["u3"]="2203" )'
+./zss0 config rsshport 22
+./zss0 vm create u3
+./zss0 ssh-forward on u3
+cd -
+
+cd repo/node-adm/
+./zss0 config nodes 'u1 u2 u3'
+SSHPORT=$(./zss0 env | grep "SECURE_PORT" | cut -d: -f2)
+./zss0 sshwait u3
+./zss0 sshcopy-force u3
+./zss0 operate on u3
+./zss0 apply u3
+./zss0 reboot u3
+cd -
+
+cd repo/zerus-test/vboxvm
+./zss0 ssh-forward off u3
+./zss0 config rsshport ${SSHPORT}
+./zss0 ssh-forward on u3
+cd -
+
+cd repo/node-adm/
+./zss0 sshwait u3
+./zss0 check u3
+cd -
+

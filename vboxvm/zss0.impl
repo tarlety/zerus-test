@@ -159,11 +159,12 @@ case $1 in
 			;;
 		"vm")
 			shift
+			NODES=${2:-${VMSPEC}}
 			case $1 in
 				"create")
 					USERNAME="$(gpg -d ${USERNAME_FILE})"
 					PASSWORD="$(gpg -d ${PASSWORD_FILE})"
-					for VMNAME in ${VMSPEC}
+					for VMNAME in ${NODES}
 					do
 						# https://askubuntu.com/questions/365615/how-do-i-enable-multiple-cores-in-my-virtual-enviroment
 						# - kubernetes nodes requires at least 2 cpus cores
