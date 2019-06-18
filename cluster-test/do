@@ -167,6 +167,7 @@ case $1 in
 	echo "2. source ./do env"
 	echo "3. ./01-test-cluster-create go"
 	echo "maybe ./do operator off"
+	echo "maybe ssh u2 -p 2222 -L 30443:localhost:443"
 	echo ""
 	echo "Clean-up Example:"
 	echo "1. ./01-test-cluster-create clean"
