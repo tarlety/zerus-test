@@ -209,7 +209,7 @@ case $1 in
 					done
 					;;
 				"delete")
-					for VMNAME in ${VMSPEC}
+					for VMNAME in ${NODES}
 					do
 						VBoxManage controlvm ${VMNAME} poweroff
 						sleep 2
