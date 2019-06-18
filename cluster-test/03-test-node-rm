@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# assumes:
+# 1. ./01-* go
+# 2. ./02-* u3~u6
+#
+# examples:
+# ./03-* u6
+
+NODE=${1:-u6}
+
+cd repo/zerus-test/vboxvm
+./zss0 ssh-forward off ${NODE}
+./zss0 vm delete ${NODE}
+./zss0 config vmspec "$(./zss0 env VMSPEC | sed "s/${NODE}//g")"
+./zss0 config diskmap_ingb "( $(./zss0 env DISKMAP_INGB | sed "s/\[\"${NODE}\"\]=\"[^\"]*\"//g") )"
+./zss0 config lsshports "( $(./zss0 env LSSHPORTS | sed "s/\[\"${NODE}\"\]=\"[^\"]*\"//g") )"
+cd -
+
+cd repo/node-adm/
+./zss0 sshclean ${NODE}
+./zss0 config nodes "$(./zss0 env NODES | sed "s/${NODE}//g")"
+cd -
+

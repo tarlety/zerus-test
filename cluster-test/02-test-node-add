@@ -2,40 +2,48 @@
 
 # assumes:
 # 1. ./01-* go
-# 2. ./02-* HOST IP DISKS LSSHPORT
+# 2. ./do operator on
+# 3. ./02-* HOST IP DISKS LSSHPORT
+# 4. ./do operator off
+#
+# examples:
+# ./02-* u4 10.13.13.104 "10 10 10" 2204
+# ./02-* u5 10.13.13.105 "10 10 10" 2205
+# ./02-* u6 10.13.13.106 "10 10 10" 2206
 
-HOST=${1:-u3}
+NODE=${1:-u3}
 IP=${2:-10.13.13.103}
 DISKS=${3:-10 10 10}
 LSSHPORT=${4:-2203}
 
 cd repo/zerus-test/vboxvm
-./zss0 config vmspec "$(./zss0 env VMSPEC) u3"
-./zss0 config diskmap_ingb "( $(./zss0 env DISKMAP_INGB) [\"u3\"]=\"${DISKS}\" )"
-./zss0 config lsshports "( $(./zss0 env LSSHPORTS) [\"u3\"]=\"${LSSHPORT}\" )"
+./zss0 config vmspec "$(./zss0 env VMSPEC) ${NODE}"
+./zss0 config diskmap_ingb "( $(./zss0 env DISKMAP_INGB) [\"${NODE}\"]=\"${DISKS}\" )"
+./zss0 config lsshports "( $(./zss0 env LSSHPORTS) [\"${NODE}\"]=\"${LSSHPORT}\" )"
 ./zss0 config rsshport 22
-./zss0 vm create u3
-./zss0 ssh-forward on u3
+./zss0 vm create ${NODE}
+./zss0 ssh-forward on ${NODE}
 cd -
 
 cd repo/node-adm/
-./zss0 config nodes "$(./zss0 env NODES) u3"
+./zss0 config nodes "$(./zss0 env NODES) ${NODE}"
 SSHPORT=$(./zss0 env | grep "SECURE_PORT" | cut -d: -f2)
-./zss0 sshwait u3
-./zss0 sshcopy-force u3
-./zss0 operate on u3
-./zss0 apply u3
-./zss0 reboot u3
+./zss0 sshclean ${NODE}
+./zss0 sshwait ${NODE}
+./zss0 sshcopy-force ${NODE}
+./zss0 operate on ${NODE}
+./zss0 apply ${NODE}
+./zss0 reboot ${NODE}
 cd -
 
 cd repo/zerus-test/vboxvm
-./zss0 ssh-forward off u3
+./zss0 ssh-forward off ${NODE}
 ./zss0 config rsshport ${SSHPORT}
-./zss0 ssh-forward on u3
+./zss0 ssh-forward on ${NODE}
 cd -
 
 cd repo/node-adm/
-./zss0 sshwait u3
-./zss0 check u3
+./zss0 sshwait ${NODE}
+./zss0 check ${NODE}
 cd -
 
