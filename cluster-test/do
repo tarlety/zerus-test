@@ -92,12 +92,15 @@ case $1 in
 	./zss0 secret-create
 	cd -
 
-	cd repo/kube-apps-ctrl
-	./app-gitea-ctrl config kubeapps_platform_dir "${PWD}/../kube-apps-platform"
-	./app-gitea-ctrl config app_basedir '/mnt/misc/mds/kube-store/app-gitea'
-	./app-gitea-ctrl config node_ports 32767
-	./app-gitea-ctrl config gpgkey test-zerus
-	cd -
+	for app in gitea owncloud hackmd
+	do
+		cd repo/kube-apps-ctrl
+		./app-${app}-ctrl config kubeapps_platform_dir "${PWD}/../kube-apps-platform"
+		./app-${app}-ctrl config app_basedir "/mnt/misc/mds/kube-store/app-${app}"
+		./app-${app}-ctrl config node_ports 32767
+		./app-${app}-ctrl config gpgkey test-zerus
+		cd -
+	done
 
 	cd repo/zerus-test/vboxvm
 	./zss0 config vmspec 'u1 u2'
@@ -182,7 +185,7 @@ case $1 in
 	echo "- a prepared ubuntu.iso file"
 	echo "- the github_account stores the ssh public key."
 	echo "- gpg key 'test-zerus' without password"
-	echo "- /etc/hosts to declare master, worker, and gitea.zerus"
+	echo "- /etc/hosts to declare u1~u6, registry, and gitea.zerus"
 	echo "- a local apt cacher"
 	echo "- a local registry proxy"
 	;;

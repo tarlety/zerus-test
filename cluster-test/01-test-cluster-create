@@ -6,8 +6,10 @@
 # 2. source ./do env
 # 3. ./01-* go
 
-case $1 in
-	"go")
+for ACTION in $*
+do
+	case ${AcTION} in
+	"vm")
 		cd repo/zerus-test/vboxvm
 		./zss0 ssh-forward off
 		./zss0 vm delete
@@ -16,7 +18,8 @@ case $1 in
 		./zss0 vm create
 		./zss0 ssh-forward on
 		cd -
-
+		;;
+	"node")
 		cd repo/node-adm/
 		SSHPORT=$(./zss0 env | grep "SECURE_PORT" | cut -d: -f2)
 		./zss0 sshclean
@@ -36,9 +39,14 @@ case $1 in
 		cd repo/node-adm/
 		./zss0 sshwait
 		./zss0 config nodectl "ssh -p ${SSHPORT}"
+		cd -
+		;;
+	"node-check")
+		cd repo/node-adm/
 		./zss0 check | tee ${CHECKLOG}
 		cd -
-
+		;;
+	"ceph")
 		cd repo/ceph-adm/
 		./zss0 secret-create
 		./zss0 preflight
@@ -48,7 +56,8 @@ case $1 in
 		./zss0 mds up
 		./zss0 mdsmount
 		cd -
-
+		;;
+	"kube")
 		cd repo/kube-adm/
 		MASTER=$(echo $(./zss0 env | grep "MASTERS" | cut -d: -f2) | cut -d' ' -f1)
 		WORKER=$(echo $(./zss0 env | grep "WORKERS" | cut -d: -f2) | cut -d' ' -f1)
@@ -73,13 +82,17 @@ case $1 in
 		./zss0 certs on
 		./zss0 ing on
 		cd -
-
+		;;
+	"gitea"|"owncloud"|"hackmd")
+		APPNAME=$1
 		cd repo/kube-apps-ctrl/
-		./app-gitea-ctrl secret-create
-		./app-gitea-ctrl init
-		./app-gitea-ctrl on
+		./app-${APPNAME}-ctrl secret-create
+		./app-${APPNAME}-ctrl init
+		./app-${APPNAME}-ctrl on
 		cd -
-
+		;;
+	"go")
+		$0 vm node node-check ceph kube gitea
 		;;
 	"clean")
 		cd repo/kube-adm/
@@ -95,4 +108,10 @@ case $1 in
 		./zss0 network delete
 		cd -
 		;;
-esac
+	*)
+		echo $(basename $0) "[vm/node/node-check/ceph/kube]"
+		echo $(basename $0) "[gitea/owncloud/hackmd]"
+		echo $(basename $0) "[go/clean]"
+		;;
+	esac
+done
