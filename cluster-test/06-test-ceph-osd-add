@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# examples:
+# ./06-* u1 /dev/sdb
+
+NODE=${1:-u1}
+OSDDEV=${2:-/dev/sdb}
+
+cd repo/ceph-adm/
+declare -A OSDMAP="( $(./zss0 env OSDMAP) )"
+OSDDEVS=$(echo "${OSDMAP[${NODE}]}" "${OSDDEV}")
+./zss0 config osdmap "( $(./zss0 env OSDMAP | sed "s/\[\"${NODE}\"\]=\"[^\"]*\"//g") )"
+./zss0 config osdmap "( $(./zss0 env OSDMAP) [\"${NODE}\"]=\"${OSDDEVS}\" )"
+./zss0 osd up ${NODE} ${OSDDEV}
+cd -
+

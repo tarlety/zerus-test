@@ -16,6 +16,9 @@ IP=${2:-10.13.13.103}
 DISKS=${3:-10 10 10}
 LSSHPORT=${4:-2203}
 
+echo "Require /etc/hosts to declare ${IP} ${NODE}."
+grep ${IP} /etc/hosts | grep ${NODE} /etc/hosts || exit 1
+
 cd repo/zerus-test/vboxvm
 ./zss0 config vmspec "$(./zss0 env VMSPEC) ${NODE}"
 ./zss0 config diskmap_ingb "( $(./zss0 env DISKMAP_INGB) [\"${NODE}\"]=\"${DISKS}\" )"

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# examples:
+# ./07-* u1 /dev/sdb
+
+NODE=${1:-u1}
+OSDDEV=${2:-/dev/sdb}
+
+cd repo/ceph-adm/
+
+# step 2. clean osd
+./zss0 osd down ${NODE} ${OSDDEV}
+# step 0. find osd id
+IDS=$(./zss0 ceph osd tree down | grep "osd\.[0-9]*" | sed "s/.*osd\.\([0-9]*\).*/\1/g")
+# step 1. rm osd
+./zss0 osdrm ${IDS}
+
+# step 3. config update
+declare -A OSDMAP="( $(./zss0 env OSDMAP) )"
+OSDDEVS=$(echo "${OSDMAP[${NODE}]}" | sed "s|${OSDDEV}||g")
+if [ -z ${OSDDEVS} ]; then
+	./zss0 config osdmap "( $(./zss0 env OSDMAP | sed "s/\[\"${NODE}\"\]=\"[^\"]*\"//g") )"
+else
+	./zss0 config osdmap "( $(./zss0 env OSDMAP | sed "s/\[\"${NODE}\"\]=\"[^\"]*\"//g") [\"${NODE}\"]=\"${OSDDEVS}\" )"
+fi
+
+cd -
+

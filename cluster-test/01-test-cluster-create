@@ -85,7 +85,6 @@ case $1 in
 		cd repo/kube-adm/
 		MASTER=$(echo $(./zss0 env | grep "MASTERS" | cut -d: -f2) | cut -d' ' -f1)
 		WORKER=$(echo $(./zss0 env | grep "WORKERS" | cut -d: -f2) | cut -d' ' -f1)
-		MASTERIP=$(host ${MASTER} | grep address | rev | cut -d' ' -f1 | rev)
 		cd -
 
 		cd repo/zerus-test/vboxvm
