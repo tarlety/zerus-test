@@ -8,7 +8,7 @@
 
 for ACTION in $*
 do
-	case ${AcTION} in
+	case ${ACTION} in
 	"vm")
 		cd repo/zerus-test/vboxvm
 		./zss0 ssh-forward off
@@ -84,7 +84,7 @@ do
 		cd -
 		;;
 	"gitea"|"owncloud"|"hackmd")
-		APPNAME=$1
+		APPNAME=${ACTION}
 		cd repo/kube-apps-ctrl/
 		./app-${APPNAME}-ctrl secret-create
 		./app-${APPNAME}-ctrl init
