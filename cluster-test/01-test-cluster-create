@@ -26,7 +26,7 @@ do
 		./zss0 sshwait
 		./zss0 sshcopy-force
 		./zss0 operate on
-		./zss0 apply | tee ${APPLYLOG}
+		./zss0 apply
 		./zss0 reboot
 		cd -
 
@@ -43,7 +43,7 @@ do
 		;;
 	"node-check")
 		cd repo/node-adm/
-		./zss0 check | tee ${CHECKLOG}
+		./zss0 check
 		cd -
 		;;
 	"ceph")
