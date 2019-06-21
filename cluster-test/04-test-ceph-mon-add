@@ -1,17 +1,21 @@
 #!/bin/bash
 
 # examples:
-# ./04-* u2
+# ./04-* u2 u3
 
 NODES=${1:-u2 u3}
 
 for NODE in ${NODES}
 do
 	cd repo/ceph-adm/
-	./zss0 config monitors "$(./zss0 env MONITORS) ${NODE}"
 	./zss0 mon up ${NODE}
-	./zss0 config mdsnode "$(./zss0 env MDSNODE) ${NODE}"
+	./zss0 config monitors "$(./zss0 env MONITORS) ${NODE}"
 	./zss0 mds up ${NODE}
+	./zss0 config mdsnode "$(./zss0 env MDSNODE) ${NODE}"
 	cd -
 done
 
+cd repo/ceph-adm/
+./zss0 network down
+./zss0 network up
+cd -

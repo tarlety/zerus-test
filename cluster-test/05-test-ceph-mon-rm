@@ -3,12 +3,15 @@
 # examples:
 # ./05-* u3
 
-NODE=${1:-u3}
+NODES=${1:-u3}
 
-cd repo/ceph-adm/
-./zss0 mds down ${NODE}
-./zss0 config mdsnode "$(./zss0 env MDSNODE | sed "s/${NODE}//g")"
-./zss0 mon down ${NODE}
-./zss0 config monitors "$(./zss0 env MONITORS | sed "s/${NODE}//g")"
-cd -
+for NODE in ${NODES}
+do
+	cd repo/ceph-adm/
+	./zss0 config mdsnode "$(./zss0 env MDSNODE | sed "s/${NODE}//g")"
+	./zss0 mds down ${NODE}
+	./zss0 config monitors "$(./zss0 env MONITORS | sed "s/${NODE}//g")"
+	./zss0 mon down ${NODE}
+	cd -
+done
 

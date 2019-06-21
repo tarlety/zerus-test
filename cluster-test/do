@@ -116,42 +116,46 @@ case $1 in
 	;;
 "preflight")
 	shift
-	case $1 in
-	"on")
-		shift
-		$0 operator on
-		$0 repo clean
+	$0 operator on
+	$0 repo clean
 
-		ISO=${1:-~/ubuntu.iso}
-		[ -e "${ISO}" ] || read -p "ISO (the ubuntu ISO file path):" ISO
+	ISO=${1:-~/ubuntu.iso}
+	[ -e "${ISO}" ] || read -p "ISO (the ubuntu ISO file path):" ISO
 
-		OPERATOR=${2:-${USER}}
-		curl https://github.com/${OPERATOR}.keys || read -p "OPERATOR (the account to host ssh key on github):" OPERATOR
+	OPERATOR=${2:-${USER}}
+	curl https://github.com/${OPERATOR}.keys || read -p "OPERATOR (the account to host ssh key on github):" OPERATOR
 
-		echo "Require gpg key 'test-zerus' without password."
-		gpg -k test-zerus || gpg --full-generate-key
-		gpg -k test-zerus || exit 3
+	echo "Require gpg key 'test-zerus' without password."
+	gpg -k test-zerus || gpg --full-generate-key
+	gpg -k test-zerus || exit 3
 
-		echo "Require /etc/hosts to declare u1/u2, registry, and gitea.zerus."
-		grep u1 /etc/hosts && grep u2 /etc/hosts && grep registry /etc/hosts && grep gitea.zerus /etc/hosts || exit 4
+	echo "Require /etc/hosts to declare u1/u2, registry, and gitea.zerus."
+	grep u1 /etc/hosts && grep u2 /etc/hosts && grep registry /etc/hosts && grep gitea.zerus /etc/hosts || exit 4
 
-		echo "Require apt cacher."
-		nc -z localhost 3142 || exit 5
+	echo "Require apt cacher."
+	nc -z localhost 3142 || exit 5
 
-		echo "Require registry proxy."
-		curl -k https://localhost:5000/v2/_catalog || exit 6
+	echo "Require registry proxy."
+	curl -k https://localhost:5000/v2/_catalog || exit 6
 
-		echo "packages dependency check."
-		python -c "import json, yaml" || exit 7
+	echo "packages dependency check."
+	python -c "import json, yaml" || exit 7
 
-		$0 repo init
-		$0 config-and-secret ${OPERATOR} ${ISO}
-		;;
-	"off")
-		$0 repo clean
-		$0 operator off
-		;;
-	esac
+	$0 repo init
+	$0 config-and-secret ${OPERATOR} ${ISO}
+	;;
+"test-ceph")
+	./01-test-cluster-create vm node ceph
+	./02-test-node-add
+	./04-*
+	./05-*
+	./06-*
+	./07-*
+	;;
+"done")
+	./01-test-cluster-create clean
+	$0 repo clean
+	$0 operator off
 	;;
 "env")
 	export ZSS_STORE
@@ -161,8 +165,9 @@ case $1 in
 	echo $(basename $0) "operator [on/off]"
 	echo $(basename $0) "repo [init/clean]"
 	echo $(basename $0) "config-and-secret [isopath]"
-	echo $(basename $0) "preflight on [isopath] [operator]"
-	echo $(basename $0) "preflight off"
+	echo $(basename $0) "preflight [isopath] [operator]"
+	echo $(basename $0) "[test-ceph]"
+	echo $(basename $0) "done"
 	echo "source" $(basename $0) "env"
 	echo ""
 	echo "Test Example:"
