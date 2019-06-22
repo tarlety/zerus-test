@@ -144,16 +144,30 @@ case $1 in
 	$0 repo init
 	$0 config-and-secret ${OPERATOR} ${ISO}
 	;;
-"test-ceph")
-	./01-test-cluster-create vm node ceph
-	./02-test-node-add
-	./04-*
-	./05-*
-	./06-*
-	./07-*
-	cd repo/ceph-adm
-	./zss0 ceph -s
-	cd - >& /dev/null
+"go")
+	shift
+	case $1 in)
+	"ceph")
+		./01-test-cluster-create vm node ceph
+		./02-test-node-add
+		./04-*
+		./05-*
+		./06-*
+		./07-*
+		cd repo/ceph-adm
+		./zss0 ceph -s
+		cd - >& /dev/null
+		;;
+	"kube")
+		./01-test-cluster-create vm node ceph kube
+		./02-test-node-add
+		./06-*
+		./07-*
+		./10-*
+		./11-*
+		kubectl get nodes
+		;;
+	esac
 	;;
 "done")
 	./01-test-cluster-create clean
@@ -169,13 +183,13 @@ case $1 in
 	echo $(basename $0) "repo [init/clean]"
 	echo $(basename $0) "config-and-secret [isopath]"
 	echo $(basename $0) "preflight [isopath] [operator]"
-	echo $(basename $0) "[test-ceph]"
+	echo $(basename $0) "go [ceph/kube]"
 	echo $(basename $0) "done"
 	echo "source" ./$(basename $0) "env"
 	echo ""
 	echo "Test Example:"
 	echo "1. ./$(basename $0) preflight ~/ubuntu.iso github_account"
-	echo "2. ./$(basename $0) test-ceph"
+	echo "2. ./$(basename $0) go ceph"
 	echo "3. ./$(basename $0) done"
 	echo "optional: ssh u2 -p 2222 -L 30443:localhost:443"
 	echo "optional: source ./$(basename $0) env"
