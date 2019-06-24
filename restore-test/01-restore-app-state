@@ -1,0 +1,36 @@
+#!/bin/bash
+
+APPNAME=${1:-gitea}
+APPSTATE=${2:-test}
+
+APPCTRL=app-${APPNAME}-ctrl
+
+DATE=`date +%Y%m%d`
+
+minikube delete && minikube start || exit 0
+ssh-keygen -f "$HOME/.ssh/known_hosts" -R "`minikube ip`"
+
+cd ../kube-apps-platform/
+./zss0 state load config $APPSTATE
+./zss0 state load secret $APPSTATE
+./zss0 config hostctrl 'ssh -o "StrictHostKeyChecking no" -i `minikube ssh-key` docker@`minikube ip`'
+./zss0 config storageclass
+./zss0 certs on
+./zss0 ing on
+DOMAIN=`./do env | grep 'DOMAIN' | head -1 | cut -d':' -f2 | cut -d' ' -f2`
+cd -
+
+cd ../kube-apps-ctrl/
+./$APPCTRL init
+./$APPCTRL state load config $APPSTATE
+./$APPCTRL config app_base_dir
+./$APPCTRL state load secret $APPSTATE
+./$APPCTRL state load data $APPSTATE
+./$APPCTRL on
+cd -
+
+echo =======================================================
+echo Please make sure below entries are added in /etc/hosts.
+echo
+echo `minikube ip` ${APPNAME}.${DOMAIN}
+
