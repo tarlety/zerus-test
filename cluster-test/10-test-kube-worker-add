@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# examples:
+# ./10-* u3
+
+NODES=${1:-u3}
+
+for NODE in ${NODES}
+do
+	cd repo/kube-adm/
+	./zss0 preflight ${NODE}
+	./zss0 join ${NODE}
+	./zss0 config workers "$(./zss0 env WORKERS) ${NODE}"
+	cd -
+done
+
+cd repo/kube-adm/
+./zss0 network down
+./zss0 network up
+cd -

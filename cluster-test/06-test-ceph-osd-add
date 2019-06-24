@@ -3,7 +3,7 @@
 # examples:
 # ./06-* u1 /dev/sdb
 
-NODE=${1:-u1}
+NODE=${1:-u3}
 OSDDEV=${2:-/dev/sdb}
 
 cd repo/ceph-adm/
