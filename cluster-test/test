@@ -155,6 +155,11 @@ case $1 in
 		./06-*
 		./07-*
 		cd repo/ceph-adm
+		while ! [[ "$(./zss0 ceph health)" == "HEALTH_OK" ]]
+		do
+			./zss0 ceph -s
+			sleep 5
+		done
 		./zss0 ceph -s
 		cd - >& /dev/null
 		;;
