@@ -146,7 +146,7 @@ case $1 in
 	;;
 "go")
 	shift
-	case $1 in)
+	case $1 in
 	"ceph")
 		./01-test-cluster-create vm node ceph
 		./02-test-node-add
