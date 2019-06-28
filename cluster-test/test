@@ -104,6 +104,7 @@ case $1 in
 
 	cd repo/zerus-test/vboxvm
 	./zss0 config vmspec 'u1 u2'
+	./zss0 config ramsize 1536
 	./zss0 config diskmap_ingb '( ["u1"]="10 10 10" ["u2"]="10 10 10" )'
 	./zss0 config lsshports '( ["u1"]="2201" ["u2"]="2202" )'
 	./zss0 config rsshport 22
@@ -172,6 +173,10 @@ case $1 in
 		./11-*
 		kubectl get nodes
 		;;
+	"min")
+		./01-test-cluster-create vm node ceph kube
+		kubectl get nodes
+		;;
 	"full")
 		./01-test-cluster-create vm node ceph kube
 		./02-test-node-add u3 10.13.13.103 "10 10 10" 2203
@@ -206,7 +211,7 @@ case $1 in
 	echo $(basename $0) "repo [init/clean]"
 	echo $(basename $0) "config-and-secret [isopath]"
 	echo $(basename $0) "preflight [isopath] [operator]"
-	echo $(basename $0) "go [ceph/kube]"
+	echo $(basename $0) "go [ceph/kube/min/full]"
 	echo $(basename $0) "done"
 	echo "source" ./$(basename $0) "env"
 	echo ""
