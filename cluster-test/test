@@ -104,7 +104,7 @@ case $1 in
 
 	cd repo/zerus-test/vboxvm
 	./zss0 config vmspec 'u1 u2'
-	./zss0 config ramsize 1536
+	./zss0 config ramsize 2048
 	./zss0 config diskmap_ingb '( ["u1"]="10 10 10" ["u2"]="10 10 10" )'
 	./zss0 config lsshports '( ["u1"]="2201" ["u2"]="2202" )'
 	./zss0 config rsshport 22
