@@ -6,13 +6,14 @@ case $1 in
 	"app")
 		PROJECTNAME=zerus-test
 		APPNAME=vboxvm
-		APPVERSION=0.1.1
+		APPVERSION=0.1.2
 		;;
 	"config")
-		CONFIGKEYS="vmspec diskmap_ingb lsshports rsshport iso"
+		CONFIGKEYS="vmspec ramsize diskmap_ingb lsshports rsshport iso"
 		declare -A CONFIG_DESCRIPTIONS
 		CONFIG_DESCRIPTIONS=( \
 			["vmspec"]="How much vm is required." \
+			["ramsize"]="the ram size (in mb) of each vm." \
 			["diskmap_ingb"]="the disk size of each vm." \
 			["lsshports"]="Which localhost ports forward to vm ssh port." \
 			["rsshport"]="Which vm port as ssh port." \
@@ -20,13 +21,13 @@ case $1 in
 			)
 
 		DEFAULT_VMSPEC="u1 u2 u3"
+		DEFAULT_RAMSIZE=2048
 		DEFAULT_DISKMAP_INGB='( ["u1"]="10 20" ["u2"]="10 20" ["u3"]="10 20" )'
 		DEFAULT_LSSHPORTS='( ["u1"]="2201" ["u2"]="2202" ["u3"]="2203" )'
 		DEFAULT_RSSHPORT=22
 		DEFAULT_ISO="ubuntu-18.04.1-server-amd64.iso"
 		;;
 	"vars")
-		RAMSIZE=2048
 		DISKPATHBASE="${HOME}/VirtualBox VMs"
 		USERNAME_FILE=${SECRET}/username
 		PASSWORD_FILE=${SECRET}/password
