@@ -50,8 +50,8 @@ then
 	echo
 	echo `minikube ip` ${APPNAME}.minikube
 else
-	url="https://${APPNAME}.minikube/"
-	code=302
+	url="https://${APPNAME}.minikube/index.html"
+	code=200
 	while [[ "$(curl -k -s -o /dev/null -w ''%{http_code}'' ${url})" != "${code}" ]]; do sleep 5; done
 	which chromium-browser && chromium-browser --incognito ${url} || google-chrome --incognito ${url}
 fi
