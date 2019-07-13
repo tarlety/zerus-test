@@ -5,8 +5,6 @@ APPSTATE=${2:-test}
 
 APPCTRL=app-${APPNAME}-ctrl
 
-DATE=`date +%Y%m%d`
-
 minikube delete && minikube start || exit 0
 ssh-keygen -f "$HOME/.ssh/known_hosts" -R "`minikube ip`"
 
