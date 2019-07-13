@@ -175,6 +175,13 @@ case $1 in
 		;;
 	"min")
 		./01-test-cluster-create vm node ceph kube
+		cd repo/ceph-adm/
+		./zss0 ceph osd pool set cephfs_data size 2
+		./zss0 ceph osd pool set cephfs_data min_size 2
+		./zss0 ceph osd pool set cephfs_metadata size 2
+		./zss0 ceph osd pool set cephfs_metadata min_size 2
+		./zss0 ceph -s
+		cd - >& /dev/null
 		kubectl get nodes
 		;;
 	"full")
