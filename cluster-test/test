@@ -155,6 +155,7 @@ case $1 in
 		./05-*
 		./06-*
 		./07-*
+		./08-*
 		cd repo/ceph-adm
 		while ! [[ "$(./zss0 ceph health)" == "HEALTH_OK" ]]
 		do
@@ -189,16 +190,17 @@ case $1 in
 		./02-test-node-add u3 10.13.13.103 "10 10 10" 2203
 		./02-test-node-add u4 10.13.13.104 "10 10 10" 2204
 		./02-test-node-add u5 10.13.13.105 "10 10 10" 2205
-		./04-test-ceph-mon-add "u2 u3"
-		./06-test-ceph-osd-add u3 /dev/sdb
-		./06-test-ceph-osd-add u3 /dev/sdc
-		./06-test-ceph-osd-add u4 /dev/sdb
-		./06-test-ceph-osd-add u4 /dev/sdc
-		./06-test-ceph-osd-add u5 /dev/sdb
-		./06-test-ceph-osd-add u5 /dev/sdc
-		./10-test-kube-worker-add u3
-		./10-test-kube-worker-add u4
-		./10-test-kube-worker-add u5
+		./04-test-ceph-node-add "u2 u3"
+		./05-test-ceph-mon-add "u2 u3"
+		./07-test-ceph-osd-add u3 /dev/sdb
+		./07-test-ceph-osd-add u3 /dev/sdc
+		./07-test-ceph-osd-add u4 /dev/sdb
+		./07-test-ceph-osd-add u4 /dev/sdc
+		./07-test-ceph-osd-add u5 /dev/sdb
+		./07-test-ceph-osd-add u5 /dev/sdc
+		./11-test-kube-worker-add u3
+		./11-test-kube-worker-add u4
+		./11-test-kube-worker-add u5
 		kubectl config current-context
 		kubectl get nodes
 		;;

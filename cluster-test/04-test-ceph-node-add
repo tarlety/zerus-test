@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# examples:
+# ./04-* u3
+
+NODES=${1:-u3}
+
+cd repo/ceph-adm/
+for NODE in ${NODES}
+do
+	./zss0 preflight ${NODE}
+done
+cd -

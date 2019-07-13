@@ -9,7 +9,9 @@ OSDDEV=${2:-/dev/sdb}
 cd repo/ceph-adm/
 declare -A OSDMAP="( $(./zss0 env OSDMAP) )"
 OSDDEVS=$(echo "${OSDMAP[${NODE}]}" "${OSDDEV}")
+# remove the node with original osds
 ./zss0 config osdmap "( $(./zss0 env OSDMAP | sed "s/\[\"${NODE}\"\]=\"[^\"]*\"//g") )"
+# add back the node with correct osds
 ./zss0 config osdmap "( $(./zss0 env OSDMAP) [\"${NODE}\"]=\"${OSDDEVS}\" )"
 ./zss0 osd up ${NODE} ${OSDDEV}
 cd -

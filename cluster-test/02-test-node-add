@@ -53,7 +53,3 @@ cd repo/node-adm/
 ./zss0 sshwait ${NODE}
 ./zss0 check ${NODE}
 cd -
-
-cd repo/ceph-adm/
-./zss0 preflight ${NODE}
-cd -
