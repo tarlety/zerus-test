@@ -70,7 +70,7 @@ do
 		cd -
 
 		cd repo/node-adm/
-		./zss0 exec ${MASTER} "sudo ufw allow from 10.0.2.2 to any proto tcp port 6443 comment 'kube-adm'"
+		./zss0 exec ${MASTER} "sudo ufw allow from 10.0.2.2 to any proto tcp port 6443 comment 'zerus-test'"
 		cd -
 
 		cd repo/zerus-test/vboxvm
