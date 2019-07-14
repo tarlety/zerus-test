@@ -147,7 +147,8 @@ case $1 in
 
 			case $1 in
 				"on")
-					echo "Enable forwarding to ${NODE}:443"
+					echo "Enable forwarding localhost:${PORT} to ${NODE}:443"
+					VBoxManage controlvm ${NODE} natpf1 "${NODE}-443,tcp,127.0.0.1,${PORT},,443"
 					sudo iptables -t nat -A PREROUTING -p tcp \
 						-d ${NODEIP} --dport 443 \
 						-j DNAT --to-destination 127.0.0.1:${PORT} \
@@ -159,6 +160,7 @@ case $1 in
 					;;
 				"off")
 					echo "Disable forwarding localhost:${PORT} to ${NODE}:443"
+					VBoxManage controlvm ${NODE} natpf1 delete "${NODE}-443"
 					sudo iptables -t nat -D PREROUTING -p tcp \
 						-d ${NODEIP} --dport 443 \
 						-j DNAT --to-destination 127.0.0.1:${PORT} \
