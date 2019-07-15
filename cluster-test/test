@@ -92,7 +92,7 @@ case $1 in
 	./zss0 secret-create
 	cd -
 
-	for app in gitea owncloud hackmd nextcloud drone registry
+	for app in gitea owncloud hackmd nextcloud drone registry-proxy
 	do
 		cd repo/kube-apps-ctrl
 		./app-${app}-ctrl config kubeapps_platform_dir "${PWD}/../kube-apps-platform"
