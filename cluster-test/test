@@ -75,7 +75,7 @@ case $1 in
 	cd -
 
 	cd repo/kube-adm
-	./zss0 config kubernetes_version '=1.14.4-00'
+	./zss0 config kubernetes_version '=1.15.0-00'
 	./zss0 config network '10.244.0.0/16'
 	./zss0 config nodeadm "${PWD}/../node-adm"
 	./zss0 config masters "u1"
