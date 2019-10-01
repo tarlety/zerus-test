@@ -18,7 +18,6 @@ cd repo/zerus-test/vboxvm
 cd -
 
 cd repo/node-adm/
-./zss0 sshclean ${NODE}
-./zss0 config nodes "$(./zss0 env NODES | sed "s/${NODE}//g")"
+./zss0 rm ${NODE}
 cd -
 

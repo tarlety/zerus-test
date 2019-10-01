@@ -29,18 +29,7 @@ cd repo/zerus-test/vboxvm
 cd -
 
 cd repo/node-adm/
-./zss0 config nodes "$(./zss0 env NODES) ${NODE}"
-SSHPORT=$(./zss0 env | grep "SECURE_PORT" | cut -d: -f2)
-./zss0 state save config 02-test-node-add
-./zss0 config nodectl 'ssh'
-./zss0 config nodectl_tty 'ssh -t'
-./zss0 sshclean ${NODE}
-./zss0 sshwait ${NODE}
-./zss0 sshcopy-force ${NODE}
-./zss0 operate on ${NODE}
-./zss0 apply ${NODE}
-./zss0 reboot ${NODE}
-./zss0 state load config 02-test-node-add
+./zss0 add ${NODE}
 cd -
 
 cd repo/zerus-test/vboxvm
