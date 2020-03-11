@@ -20,6 +20,7 @@ echo "Require /etc/hosts to declare ${IP} ${NODE}."
 grep ${IP} /etc/hosts | grep ${NODE} /etc/hosts || exit 1
 
 cd repo/zerus-test/vboxvm
+SSHPORT=$(./zss0 env RSSHPORT)
 ./zss0 config vmspec "$(./zss0 env VMSPEC) ${NODE}"
 ./zss0 config diskmap_ingb "( $(./zss0 env DISKMAP_INGB) [\"${NODE}\"]=\"${DISKS}\" )"
 ./zss0 config lsshports "( $(./zss0 env LSSHPORTS) [\"${NODE}\"]=\"${LSSHPORT}\" )"
