@@ -50,8 +50,8 @@ case $1 in
 	./zss0 config nodectl_tty 'ssh -t'
 	./zss0 config hostfile '/etc/hosts'
 	./zss0 config netplan "${PWD}/../../VirtualBoxVMConfigs/01-netcfg.yaml"
-	./zss0 config aptproxyfile "${PWD}/../../VirtualBoxVMConfigs/01proxy"
-	./zss0 config registryproxyhostport 'registry:5000'
+	./zss0 config aptproxyfile ""
+	./zss0 config registryproxyhostport ""
 	./zss0 config secure_port 2222
 	./zss0 config dns1 '8.8.8.8'
 	./zss0 config dns2 '8.8.4.4'
@@ -132,12 +132,6 @@ case $1 in
 
 	echo "Require /etc/hosts to declare u1/u2, registry, and gitea.zerus."
 	grep u1 /etc/hosts && grep u2 /etc/hosts && grep registry /etc/hosts && grep gitea.zerus /etc/hosts || exit 4
-
-	echo "Require apt cacher."
-	nc -z localhost 3142 || exit 5
-
-	echo "Require registry proxy."
-	curl -k https://localhost:5000/v2/_catalog || exit 6
 
 	echo "packages dependency check."
 	python -c "import json, yaml" || exit 7
@@ -235,7 +229,5 @@ case $1 in
 	echo "- prepare an ubuntu iso file."
 	echo "- prepare the github account which stores the ssh public key."
 	echo "- prepare /etc/hosts to declare u1~u6, registry, and gitea.zerus"
-	echo "- a local apt cacher"
-	echo "- a local registry proxy"
 	;;
 esac
