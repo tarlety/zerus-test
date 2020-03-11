@@ -75,11 +75,12 @@ case $1 in
 	cd -
 
 	cd repo/kube-adm
-	./zss0 config kubernetes_version '=1.15.0-00'
+	./zss0 config kubernetes_version '=1.16.2-00'
 	./zss0 config network '10.244.0.0/16'
 	./zss0 config nodeadm "${PWD}/../node-adm"
 	./zss0 config masters "u1"
 	./zss0 config workers "u2"
+	./zss0 config apivip $(host u1 | grep address | rev | cut -d' ' -f1 | rev)
 	./zss0 config gpgkey test-zerus
 	cd -
 
