@@ -6,7 +6,7 @@ case $1 in
 	"app")
 		PROJECTNAME=zerus-test
 		APPNAME=vboxvm
-		APPVERSION=0.1.3
+		APPVERSION=0.1.4
 		;;
 	"config")
 		CONFIGKEYS="vmspec ramsize diskmap_ingb lsshports rsshport iso"
@@ -231,6 +231,18 @@ case $1 in
 						VBoxManage unregistervm --delete ${VMNAME}
 					done
 					;;
+				"save")
+					for VMNAME in ${NODES}
+					do
+						VBoxManage snapshot ${VMNAME} take ss
+					done
+					;;
+				"load")
+					for VMNAME in ${NODES}
+					do
+						VBoxManage snapshot ${VMNAME} restore ss
+					done
+					;;
 			esac
 			;;
 		esac
@@ -238,7 +250,8 @@ case $1 in
 	#------------------------------------------------------------------------------
 	"usage")
 		echo $(basename $0) "[ssh-forward/kube-forward/web-forward] [on/off] [node] [port]"
-		echo $(basename $0) "[network/vm] [create/delete]"
+		echo $(basename $0) "[network] [create/delete]"
+		echo $(basename $0) "[vm] [create/delete/save/load]"
 		;;
 esac
 
