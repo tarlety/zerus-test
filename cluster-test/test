@@ -131,11 +131,12 @@ case $1 in
 	gpg -k test-zerus || gpg --full-generate-key
 	gpg -k test-zerus || exit 3
 
-	echo "Require /etc/hosts to declare u1/u2, registry, and gitea.zerus."
-	grep u1 /etc/hosts && grep u2 /etc/hosts && grep registry /etc/hosts && grep gitea.zerus /etc/hosts || exit 4
+	echo "Require /etc/hosts for u1/u2 (ex: 10.13.13.101), and gitea.zerus."
+	grep u1 /etc/hosts && grep u2 /etc/hosts && grep gitea.zerus /etc/hosts || exit 4
 
 	echo "packages dependency check."
 	python -c "import json, yaml" || sudo apt-get install -y python-yaml || exit 7
+	which sponge || sudo apt-get install -y moreutils || exit 7
 
 	$0 repo init
 	$0 config-and-secret ${OPERATOR} ${ISO}
