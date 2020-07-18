@@ -4,232 +4,245 @@ ZSS_STORE=${PWD}/repo/.store
 
 case $1 in
 "operator")
-	shift
-	case $1 in
-	"on")
-		echo "${USER} ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/${USER}
-		;;
-	"off")
-		sudo -n rm /etc/sudoers.d/${USER}
-		;;
-	esac
-	;;
+  shift
+  case $1 in
+  "on")
+    echo "${USER} ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/${USER}
+    ;;
+  "off")
+    sudo -n rm /etc/sudoers.d/${USER}
+    ;;
+  esac
+  ;;
 "repo")
-	shift
-	case $1 in
-	"init")
-		mkdir -p repo
-		cd repo
-		git clone https://github.com/tarlety/node-adm
-		git clone https://github.com/tarlety/ceph-adm
-		git clone https://github.com/tarlety/kube-adm
-		git clone https://github.com/tarlety/kube-apps-platform
-		git clone https://github.com/tarlety/kube-apps-ctrl
-		git clone https://github.com/tarlety/zerus-test
-		cd -
-		;;
-	"clean")
-		rm -rf repo
-		;;
-	esac
-	;;
+  shift
+  case $1 in
+  "init")
+    mkdir -p repo
+    cd repo
+    git clone https://github.com/tarlety/node-adm
+    git clone https://github.com/tarlety/ceph-adm
+    git clone https://github.com/tarlety/kube-adm
+    git clone https://github.com/tarlety/kube-apps-platform
+    git clone https://github.com/tarlety/kube-apps-ctrl
+    git clone https://github.com/tarlety/zerus-test
+    cd -
+    ;;
+  "clean")
+    rm -rf repo
+    ;;
+  esac
+  ;;
 "config-and-secret")
-	shift
-	OPERATOR=${1:${USER}}
-	ISO=${2:-~/linux.iso}
+  shift
+  OPERATOR=${1:${USER}}
+  ISO=${2:-~/linux.iso}
 
-	DATE=`date +%Y%m%d`
-	BASENAME=${DATE}-zerus-test
+  DATE=`date +%Y%m%d`
+  BASENAME=${DATE}-zerus-test
 
-	mkdir -p .store
-	export ZSS_STORE
+  mkdir -p .store
+  export ZSS_STORE
 
-	cd repo/node-adm
-	./zss0 config nodes 'u1 u2'
-	./zss0 config nodectl 'ssh'
-	./zss0 config nodectl_tty 'ssh -t'
-	./zss0 config hostfile '/etc/hosts'
-	./zss0 config netplan "${PWD}/../../VirtualBoxVMConfigs/01-netcfg.yaml"
-	./zss0 config aptproxyfile ""
-	./zss0 config registryproxyhostport ""
-	./zss0 config secure_port 2222
-	./zss0 config dns1 '8.8.8.8'
-	./zss0 config dns2 '8.8.4.4'
-	./zss0 config ntp '91.189.89.199'
-	./zss0 config smtp localhost
-	./zss0 config operator ${OPERATOR}
-	./zss0 config gpgkey test-zerus
-	mkdir -p "${ZSS_STORE}/zerus/node-adm/secret"
-	echo "${OPERATOR}" | gpg -ear test-zerus -o ${ZSS_STORE}/zerus/node-adm/secret/grubuser
-	echo "Please_fill_your_password_here." | gpg -ear test-zerus -o ${ZSS_STORE}/zerus/node-adm/secret/grubpass
-	cd -
+  cd repo/node-adm
+  ./zss0 config nodes 'u1 u2'
+  ./zss0 config nodectl 'ssh'
+  ./zss0 config nodectl_tty 'ssh -t'
+  ./zss0 config hostfile '/etc/hosts'
+  ./zss0 config netplan "${PWD}/../../VirtualBoxVMConfigs/01-netcfg.yaml"
+  ./zss0 config aptproxyfile ""
+  ./zss0 config registryproxyhostport ""
+  ./zss0 config secure_port 2222
+  ./zss0 config dns1 '8.8.8.8'
+  ./zss0 config dns2 '8.8.4.4'
+  ./zss0 config ntp '91.189.89.199'
+  ./zss0 config smtp localhost
+  ./zss0 config operator ${OPERATOR}
+  ./zss0 config gpgkey test-zerus
+  mkdir -p "${ZSS_STORE}/zerus/node-adm/secret"
+  echo "${OPERATOR}" | gpg -ear test-zerus -o ${ZSS_STORE}/zerus/node-adm/secret/grubuser
+  echo "Please_fill_your_password_here." | gpg -ear test-zerus -o ${ZSS_STORE}/zerus/node-adm/secret/grubpass
+  cd -
 
-	cd repo/ceph-adm
-	./zss0 config network
-	./zss0 config nodeadm "${PWD}/../node-adm"
-	./zss0 config monitors "u1"
-	./zss0 config osdmap '( ["u1"]="/dev/sdb /dev/sdc" ["u2"]="/dev/sdb /dev/sdc" )'
-	./zss0 config mdsnode 'u1'
-	./zss0 config pgnum 64
-	./zss0 config gpgkey test-zerus
-	cd -
+  cd repo/ceph-adm
+  ./zss0 config network
+  ./zss0 config nodeadm "${PWD}/../node-adm"
+  ./zss0 config monitors "u1"
+  ./zss0 config osdmap '( ["u1"]="/dev/sdb /dev/sdc" ["u2"]="/dev/sdb /dev/sdc" )'
+  ./zss0 config mdsnode 'u1'
+  ./zss0 config pgnum 64
+  ./zss0 config gpgkey test-zerus
+  cd -
 
-	cd repo/kube-adm
-	./zss0 config kubernetes_version '=1.16.2-00'
-	./zss0 config network '10.244.0.0/16'
-	./zss0 config nodeadm "${PWD}/../node-adm"
-	./zss0 config masters "u1"
-	./zss0 config workers "u2"
-	./zss0 config apivip $(host u1 | grep address | rev | cut -d' ' -f1 | rev)
-	./zss0 config gpgkey test-zerus
-	cd -
+  cd repo/kube-adm
+  ./zss0 config kubernetes_version '=1.16.2-00'
+  ./zss0 config network '10.244.0.0/16'
+  ./zss0 config nodeadm "${PWD}/../node-adm"
+  ./zss0 config masters "u1"
+  ./zss0 config workers "u2"
+  ./zss0 config apivip $(host u1 | grep address | rev | cut -d' ' -f1 | rev)
+  ./zss0 config gpgkey test-zerus
+  cd -
 
-	cd repo/kube-apps-platform
-	./zss0 config domain zerus
-	./zss0 config subject '/C=CN/ST=State/L=Location/O=Org/OU=Unit/CN=zerus'
-	./zss0 config hostctrl "ssh ${OPERATOR}@u1 -p 2222"
-	./zss0 config storagectrl "${PWD}/../../ceph-kube-store/cephfs"
-	./zss0 config gpgkey test-zerus
-	./zss0 secret-create
-	cd -
+  cd repo/kube-apps-platform
+  ./zss0 config domain zerus
+  ./zss0 config subject '/C=CN/ST=State/L=Location/O=Org/OU=Unit/CN=zerus'
+  ./zss0 config hostctrl "ssh ${OPERATOR}@u1 -p 2222"
+  ./zss0 config storagectrl "${PWD}/../../ceph-kube-store/cephfs"
+  ./zss0 config gpgkey test-zerus
+  ./zss0 secret-create
+  cd -
 
-	for app in gitea owncloud hackmd nextcloud drone registry-proxy
-	do
-		cd repo/kube-apps-ctrl
-		./app-${app}-ctrl config kubeapps_platform_dir "${PWD}/../kube-apps-platform"
-		./app-${app}-ctrl config app_basedir "/mnt/misc/mds/kube-store/app-${app}"
-		./app-${app}-ctrl config node_ports 32767
-		./app-${app}-ctrl config gpgkey test-zerus
-		cd -
-	done
+  for app in gitea owncloud hackmd nextcloud drone registry-proxy
+  do
+    cd repo/kube-apps-ctrl
+    ./app-${app}-ctrl config kubeapps_platform_dir "${PWD}/../kube-apps-platform"
+    ./app-${app}-ctrl config app_basedir "/mnt/misc/mds/kube-store/app-${app}"
+    ./app-${app}-ctrl config node_ports 32767
+    ./app-${app}-ctrl config gpgkey test-zerus
+    cd -
+  done
 
-	cd repo/zerus-test/vboxvm
-	./zss0 config vmspec 'u1 u2'
-	./zss0 config ramsize 2048
-	./zss0 config diskmap_ingb '( ["u1"]="10 10 10" ["u2"]="10 10 10" )'
-	./zss0 config lsshports '( ["u1"]="2201" ["u2"]="2202" )'
-	./zss0 config rsshport 22
-	./zss0 config iso ${ISO}
-	./zss0 config gpgkey test-zerus
-	mkdir -p "${ZSS_STORE}/zerus-test/vboxvm/secret"
-	echo "${OPERATOR}" | gpg -ear test-zerus -o ${ZSS_STORE}/zerus-test/vboxvm/secret/username
-	echo "Please_fill_your_password_here." | gpg -ear test-zerus -o ${ZSS_STORE}/zerus-test/vboxvm/secret/password
-	cd -
-	;;
+  cd repo/zerus-test/vboxvm
+  ./zss0 config vmspec 'u1 u2'
+  ./zss0 config ramsize 2048
+  ./zss0 config diskmap_ingb '( ["u1"]="10 10 10" ["u2"]="10 10 10" )'
+  ./zss0 config lsshports '( ["u1"]="2201" ["u2"]="2202" )'
+  ./zss0 config rsshport 22
+  ./zss0 config iso ${ISO}
+  ./zss0 config gpgkey test-zerus
+  mkdir -p "${ZSS_STORE}/zerus-test/vboxvm/secret"
+  echo "${OPERATOR}" | gpg -ear test-zerus -o ${ZSS_STORE}/zerus-test/vboxvm/secret/username
+  echo "Please_fill_your_password_here." | gpg -ear test-zerus -o ${ZSS_STORE}/zerus-test/vboxvm/secret/password
+  cd -
+  ;;
 "preflight")
-	shift
-	$0 operator on
-	$0 repo clean
+  shift
+  $0 operator on
+  $0 repo clean
 
-	ISO=${1:-~/ubuntu.iso}
-	[ -e "${ISO}" ] || read -p "ISO (the ubuntu ISO file path):" ISO
+  ISO=${1:-~/ubuntu.iso}
+  [ -e "${ISO}" ] || read -p "ISO (the ubuntu ISO file path):" ISO
 
-	OPERATOR=${2:-${USER}}
-	curl https://github.com/${OPERATOR}.keys || read -p "OPERATOR (the account to host ssh key on github):" OPERATOR
+  OPERATOR=${2:-${USER}}
+  curl https://github.com/${OPERATOR}.keys || read -p "OPERATOR (the account to host ssh key on github):" OPERATOR
 
-	echo "Require gpg key 'test-zerus' without password."
-	gpg -k test-zerus || gpg --full-generate-key
-	gpg -k test-zerus || exit 3
+  echo "Require gpg key 'test-zerus' without password."
+  gpg -k test-zerus || gpg --full-generate-key
+  gpg -k test-zerus || exit 3
 
-	echo "Require /etc/hosts for u1/u2 (ex: 10.13.13.101), and gitea.zerus."
-	grep u1 /etc/hosts && grep u2 /etc/hosts && grep gitea.zerus /etc/hosts || exit 4
+  echo "Require /etc/hosts for u1/u2 (ex: 10.13.13.101), and gitea.zerus (ex: 10.13.13.102)."
+  grep u1 /etc/hosts && grep u2 /etc/hosts && grep gitea.zerus /etc/hosts || exit 4
 
-	echo "packages dependency check."
-	python -c "import json, yaml" || sudo apt-get install -y python-yaml || exit 7
-	which sponge || sudo apt-get install -y moreutils || exit 7
+  echo "packages dependency check."
+  python -c "import json, yaml" || sudo apt-get install -y python-yaml || exit 7
+  which sponge || sudo apt-get install -y moreutils || exit 7
 
-	$0 repo init
-	$0 config-and-secret ${OPERATOR} ${ISO}
-	;;
+  $0 repo init
+  $0 config-and-secret ${OPERATOR} ${ISO}
+  ;;
 "go")
-	shift
-	case $1 in
-	"ceph")
-		./01-test-cluster-create vm node ceph
-		./02-test-node-add
-		./04-*
-		./05-*
-		./06-*
-		./07-*
-		./08-*
-		cd repo/ceph-adm
-		while ! [[ "$(./zss0 ceph health)" == "HEALTH_OK" ]]
-		do
-			./zss0 ceph -s
-			sleep 5
-		done
-		./zss0 ceph -s
-		cd - >& /dev/null
-		;;
-	"kube")
-		./01-test-cluster-create vm node ceph kube
-		./02-test-node-add
-		./06-*
-		./07-*
-		./10-*
-		./11-*
-		kubectl get nodes
-		;;
-	"min")
-		./01-test-cluster-create vm node ceph kube
-		cd repo/ceph-adm/
-		./zss0 ceph osd pool set cephfs_data size 2
-		./zss0 ceph osd pool set cephfs_data min_size 2
-		./zss0 ceph osd pool set cephfs_metadata size 2
-		./zss0 ceph osd pool set cephfs_metadata min_size 2
-		./zss0 ceph -s
-		cd - >& /dev/null
-		kubectl get nodes
-		;;
-	"full")
-		./01-test-cluster-create vm node ceph kube
-		./02-test-node-add u3 10.13.13.103 "10 10 10" 2203
-		./02-test-node-add u4 10.13.13.104 "10 10 10" 2204
-		./02-test-node-add u5 10.13.13.105 "10 10 10" 2205
-		./04-test-ceph-node-add "u2 u3"
-		./05-test-ceph-mon-add "u2 u3"
-		./07-test-ceph-osd-add u3 /dev/sdb
-		./07-test-ceph-osd-add u3 /dev/sdc
-		./07-test-ceph-osd-add u4 /dev/sdb
-		./07-test-ceph-osd-add u4 /dev/sdc
-		./07-test-ceph-osd-add u5 /dev/sdb
-		./07-test-ceph-osd-add u5 /dev/sdc
-		./11-test-kube-worker-add u3
-		./11-test-kube-worker-add u4
-		./11-test-kube-worker-add u5
-		kubectl config current-context
-		kubectl get nodes
-		;;
-	esac
-	;;
+  shift
+  case $1 in
+  "ceph")
+    ./01-test-cluster-create vm node ceph
+    ./02-test-node-add
+    ./04-*
+    ./05-*
+    ./06-*
+    ./07-*
+    ./08-*
+    cd repo/ceph-adm
+    while ! [[ "$(./zss0 ceph health)" == "HEALTH_OK" ]]
+    do
+      ./zss0 ceph -s
+      sleep 5
+    done
+    ./zss0 ceph -s
+    cd - >& /dev/null
+    ;;
+  "kube")
+    ./01-test-cluster-create vm node ceph kube
+    ./02-test-node-add
+    ./06-*
+    ./07-*
+    ./10-*
+    ./11-*
+    kubectl get nodes
+    ;;
+  "min")
+    ./01-test-cluster-create vm node ceph kube
+    cd repo/ceph-adm/
+    ./zss0 ceph osd pool set cephfs_data size 2
+    ./zss0 ceph osd pool set cephfs_data min_size 2
+    ./zss0 ceph osd pool set cephfs_metadata size 2
+    ./zss0 ceph osd pool set cephfs_metadata min_size 2
+    ./zss0 ceph -s
+    cd - >& /dev/null
+    kubectl get nodes
+    ;;
+  "full")
+    ./01-test-cluster-create vm node ceph kube
+    ./02-test-node-add u3 10.13.13.103 "10 10 10" 2203
+    ./02-test-node-add u4 10.13.13.104 "10 10 10" 2204
+    ./02-test-node-add u5 10.13.13.105 "10 10 10" 2205
+    ./04-test-ceph-node-add "u2 u3"
+    ./05-test-ceph-mon-add "u2 u3"
+    ./07-test-ceph-osd-add u3 /dev/sdb
+    ./07-test-ceph-osd-add u3 /dev/sdc
+    ./07-test-ceph-osd-add u4 /dev/sdb
+    ./07-test-ceph-osd-add u4 /dev/sdc
+    ./07-test-ceph-osd-add u5 /dev/sdb
+    ./07-test-ceph-osd-add u5 /dev/sdc
+    ./11-test-kube-worker-add u3
+    ./11-test-kube-worker-add u4
+    ./11-test-kube-worker-add u5
+    kubectl config current-context
+    kubectl get nodes
+    ;;
+  esac
+  ;;
+"post-test")
+  shift
+  case $1 in
+  "gitea")
+    ./01-test-cluster-create gitea
+    url="https://gitea.zerus"
+    code=200
+    while [[ "$(curl -k -s -o /dev/null -w ''%{http_code}'' ${url})" != "${code}" ]]; do sleep 5; done
+    which chromium-browser && chromium-browser --incognito ${url} || google-chrome --incognito ${url}
+    ;;
+  esac
+  ;;
 "done")
-	./01-test-cluster-create clean
-	$0 repo clean
-	$0 operator off
-	;;
+  ./01-test-cluster-create clean
+  $0 repo clean
+  $0 operator off
+  ;;
 "env")
-	export ZSS_STORE
-	;;
+  export ZSS_STORE
+  ;;
 *)
-	echo "Commands:"
-	echo $(basename $0) "operator [on/off]"
-	echo $(basename $0) "repo [init/clean]"
-	echo $(basename $0) "config-and-secret [isopath]"
-	echo $(basename $0) "preflight [isopath] [operator]"
-	echo $(basename $0) "go [ceph/kube/min/full]"
-	echo $(basename $0) "done"
-	echo "source" ./$(basename $0) "env"
-	echo ""
-	echo "Test Example:"
-	echo "1. ./$(basename $0) preflight ~/ubuntu.iso github_account"
-	echo "2. ./$(basename $0) go ceph"
-	echo "3. ./$(basename $0) done"
-	echo "optional: ssh u2 -p 2222 -L 30443:localhost:443"
-	echo "optional: source ./$(basename $0) env"
-	echo ""
-	echo "Assumptions:"
-	echo "- prepare an ubuntu iso file."
-	echo "- prepare the github account which stores the ssh public key."
-	echo "- prepare /etc/hosts to declare u1~u6, registry, and gitea.zerus"
-	;;
+  echo "Commands:"
+  echo $(basename $0) "operator [on/off]"
+  echo $(basename $0) "repo [init/clean]"
+  echo $(basename $0) "config-and-secret [isopath]"
+  echo $(basename $0) "preflight [isopath] [operator]"
+  echo $(basename $0) "go [ceph/kube/min/full]"
+  echo $(basename $0) "post-test [gitea]"
+  echo $(basename $0) "done"
+  echo "source" ./$(basename $0) "env"
+  echo ""
+  echo "Test Example:"
+  echo "1. ./$(basename $0) preflight ~/ubuntu.iso github_account"
+  echo "2. ./$(basename $0) go min"
+  echo "2. ./$(basename $0) post-test gitea"
+  echo "3. ./$(basename $0) done"
+  echo "optional: source ./$(basename $0) env"
+  echo ""
+  echo "Assumptions:"
+  echo "- prepare an ubuntu iso file."
+  echo "- prepare the github account which stores the ssh public key."
+  echo "- prepare /etc/hosts to declare u1~u6, and gitea.zerus (same as worker ip)"
+  ;;
 esac
