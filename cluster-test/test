@@ -135,7 +135,7 @@ case $1 in
 	grep u1 /etc/hosts && grep u2 /etc/hosts && grep registry /etc/hosts && grep gitea.zerus /etc/hosts || exit 4
 
 	echo "packages dependency check."
-	python -c "import json, yaml" || exit 7
+	python -c "import json, yaml" || sudo apt-get install -y python-yaml || exit 7
 
 	$0 repo init
 	$0 config-and-secret ${OPERATOR} ${ISO}
