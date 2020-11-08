@@ -83,7 +83,7 @@ do
 		./zss0 ing on
 		cd -
 		;;
-	"gitea"|"owncloud"|"hackmd")
+	"gitea"|"nextcloud"|"hackmd")
 		APPNAME=${ACTION}
 		cd repo/kube-apps-ctrl/
 		./app-${APPNAME}-ctrl secret-create
@@ -110,7 +110,7 @@ do
 		;;
 	*)
 		echo $(basename $0) "[vm/node/node-check/ceph/kube]"
-		echo $(basename $0) "[gitea/owncloud/hackmd]"
+		echo $(basename $0) "[gitea/nextcloud/hackmd]"
 		echo $(basename $0) "[go/clean]"
 		;;
 	esac

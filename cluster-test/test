@@ -93,7 +93,7 @@ case $1 in
   ./zss0 secret-create
   cd -
 
-  for app in gitea owncloud hackmd nextcloud drone registry-proxy
+  for app in gitea hackmd nextcloud drone registry-proxy
   do
     cd repo/kube-apps-ctrl
     ./app-${app}-ctrl config kubeapps_platform_dir "${PWD}/../kube-apps-platform"
@@ -194,7 +194,9 @@ case $1 in
     ./07-test-ceph-osd-add u4 /dev/sdc
     ./07-test-ceph-osd-add u5 /dev/sdb
     ./07-test-ceph-osd-add u5 /dev/sdc
-    ./11-test-kube-worker-add u3
+    ./08-test-ceph-osd-rm u3 /dev/sdb
+    ./09-test-kube-master-add u3 u4
+    ./10-test-kube-master-rm u4
     ./11-test-kube-worker-add u4
     ./11-test-kube-worker-add u5
     kubectl config current-context
