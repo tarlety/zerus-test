@@ -83,7 +83,7 @@ do
 		./zss0 ing on
 		cd -
 		;;
-	"gitea"|"nextcloud"|"hackmd")
+	"gitea"|"nextcloud"|"hackmd"|"snipe-it")
 		APPNAME=${ACTION}
 		cd repo/kube-apps-ctrl/
 		./app-${APPNAME}-ctrl secret-create
@@ -91,8 +91,27 @@ do
 		./app-${APPNAME}-ctrl on
 		cd -
 		;;
+	"network")
+		cd repo/node-adm/
+		    for NODE in $(./zss0 env NODES)
+                    do
+                        IP=$(host ${NODE} | grep address | rev | cut -d' ' -f1 | rev)
+                        ./zss0 exec ${NODE} sudo ifconfig enp0s8:0 ${IP}
+                        ./zss0 exec ${NODE} sudo ufw disable
+                    done
+		cd -
+		;;
+	"minconf")
+                cd repo/ceph-adm/
+                    ./zss0 ceph osd pool set cephfs_data size 1
+                    ./zss0 ceph osd pool set cephfs_data min_size 1
+                    ./zss0 ceph osd pool set cephfs_metadata size 1
+                    ./zss0 ceph osd pool set cephfs_metadata min_size 1
+                    ./zss0 ceph -s
+                cd - >& /dev/null
+		;;
 	"go")
-		$0 vm node node-check ceph kube gitea
+		$0 vm node network node-check ceph minconf kube gitea
 		;;
 	"clean")
 		cd repo/kube-adm/
@@ -111,7 +130,7 @@ do
 	*)
 		echo $(basename $0) "[vm/node/node-check/ceph/kube]"
 		echo $(basename $0) "[gitea/nextcloud/hackmd]"
-		echo $(basename $0) "[go/clean]"
+		echo $(basename $0) "[network/minconf/go/clean]"
 		;;
 	esac
 done
